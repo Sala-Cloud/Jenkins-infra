@@ -1,0 +1,30 @@
+---
+# - name: Upgrade all packages on Solaris x86
+#   ansible.builtin.command: sudo pkg update --license --accept
+
+
+# - name: beadm backup B4 Upgrade
+#   command: beadm create 'VM-B4upgradeOS'
+#   ignore_errors: true
+# - name: Create directory for store ssl-key
+#   command: mkdir /ssl
+#   ignore_errors: true
+# - name: copy SSL-key to directory /ssl
+#   command: mv /export/home/amkuser1/pkg.oracle.com.key.pem /ssl/
+#   ignore_errors: true
+# - name: copy SSL-key to directory /ssl/
+#   command: mv /export/home/amkuser1/pkg.oracle.com.certificate.pem /ssl/
+#   ignore_errors: true
+# - name: Unset or remove current repo
+#   command: pkg unset-publisher solaris
+#   ignore_errors: true
+#   PLAYbook below is not work yet
+# - name: Set set-publisher (repo) for Upgrade //NOTE to run this task You must copy ssl-key to patch /ssl/
+#   shell:
+#         pkg set-publisher -k /ssl/pkg.oracle.com.key.pem -c /ssl/pkg.oracle.com.certificate.pem -G "*" -g https://pkg.oracle.com/solaris/support/ solaris
+#   ignore_errors: true
+
+# - name: Solaris x86 Upgrade version to 11.4-11.4.62.0.1.151.3"
+#   shell:
+#         "pkg update --accept entire@11.4-11.4.62.0.1.151.3"
+#   ignore_errors: true

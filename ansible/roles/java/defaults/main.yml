@@ -1,0 +1,4 @@
+---
+# defaults file for ansible/roles/java
+java_apt_package: openjdk-8-jdk
+java_yum_package: java-1.8.0-openjdk

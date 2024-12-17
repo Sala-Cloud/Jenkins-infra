@@ -1,0 +1,138 @@
+---
+- name: Ubuntu set password never expire to user amkdevops
+  command: chage -m 0 -M 99999 -I -1 -E -1 amkdevops
+  ignore_errors: true
+- name: Ensure default user shell timeout is 900 seconds or less
+  ansible.builtin.blockinfile:
+    path: /etc/profile.d/01-locale-fix.sh
+    block: |
+      TMOUT=900 readonly TMOUT export TMOUT
+  ignore_errors: true
+
+- name:  Ensure shadow group is empty
+  shell:
+     sed -ri 's/(^shadow:[^:]*:[^:]*:)([^:]+$)/1/' /etc/group
+  ignore_errors: true
+- name: Ensure suspicious packets are logged | Insert ipv4 to below all the line
+  ansible.builtin.blockinfile:
+    path: /etc/sysctl.conf
+    block: |
+      net.ipv4.conf.all.log_martians = 1
+      net.ipv4.conf.default.log_martians = 1
+      net.ipv4.icmp_ignore_bogus_error_responses = 1
+      net.ipv4.conf.all.rp_filter = 1
+      net.ipv4.conf.default.rp_filter = 1
+      net.ipv6.conf.all.accept_ra = 0
+      net.ipv6.conf.default.accept_ra = 0
+
+  ignore_errors: true
+- name:  Set the active kernel parameters
+  shell: "{{item}}"
+  loop:
+    - "sysctl -w net.ipv4.conf.all.log_martians=1"
+    - "sysctl -w net.ipv4.conf.default.log_martians=1"
+    - "sysctl -w net.ipv4.route.flush=1"
+  ignore_errors: true
+###########################  6.2 User and Group Settings ############
+# - name: create script
+#   command: mkdir /usr/local/bin/script
+#   ignore_errors: true
+# - name: create file passwd.sh
+#   command: touch /usr/local/bin/script/passwd.sh
+#   ignore_errors: true
+# - name: set permission for file script
+#   command: chmod -R 750 /usr/local/bin/script
+#   ignore_errors: true
+# - name: Insert scrip to file /usr/local/bin/script/passwd.sh
+#   ansible.builtin.blockinfile:
+#     path: /usr/local/bin/script/passwd.sh
+#     block: |
+#         #!/bin/bash 
+#         for i in $(cut -s -d: -f4 /etc/passwd | sort -u ); do
+#           grep -q -P "^.*?:[^:]*:$i:" /etc/group 
+#           if [ $? -ne 0 ]; then 
+#             echo "Group $i is referenced by /etc/passwd but does not exist in /etc/group" 
+#           fi 
+#         done
+#   ignore_errors: true
+# - name: Ensure all groups in /etc/passwd exist in /etc/group |  verify no results are returned
+#   command: bash /usr/local/bin/script/passwd.sh
+#   ignore_errors: true
+
+# - name: create file users' dot
+#   command: touch /usr/local/bin/script/user-dot.shu
+#   ignore_errors: true
+# - name: set permission on file user's dot
+#   command: chmod 750 /usr/local/bin/script/user-dot.sh
+#   ignore_errors: true
+# - name: Insert scrip to file /usr/local/bin/script/user-dot.sh
+#   ansible.builtin.blockinfile:
+#     path: /usr/local/bin/script/user-dot.sh
+#     block: |
+#       #!/bin/bash
+#       for dir in `cat /etc/passwd | egrep -v '(root|sync|halt|shutdown)' | awk -F: '($7 != "/usr/sbin/nologin") { print $6 }'`; do
+#         for file in $dir/.[A-Za-z0-9]*; do
+#           if [ ! -h "$file" -a -f "$file" ]; then
+#             fileperm=`ls -ld $file | cut -f1 -d" "` 
+#             if [ `echo $fileperm | cut -c6 ` != "-" ]; then
+#             echo "Group Write permission set on file $file" 
+#             fi 
+#             if [ `echo $fileperm | cut -c9 ` != "-" ]; then
+#             echo "Other Write permission set on file $file" 
+#             fi 
+#           fi 
+#         done 
+#       done
+#   ignore_errors: true
+# - name: Ensure users' dot files are not group or world writable |  verify no results are returned
+#   command: bash /usr/local/bin/script/user-dot.sh
+#   ignore_errors: true
+
+# - name: create file user's homt directory
+#   command: touch /usr/local/bin/script/user-directory.sh
+#   ignore_errors: true
+# - name: set permission on file user-directory.sh
+#   command: chmod 750 /usr/local/bin/script/user-directory.sh
+#   ignore_errors: true
+# - name: Insert scrip to file /usr/local/bin/script/user-directory.sh
+#   ansible.builtin.blockinfile:
+#     path: /usr/local/bin/script/user-directory.sh
+#     block: |
+#       #!/bin/bash 
+#       cat /etc/passwd | awk -F: '{ print $1 " " $3 " " $6 }' | while read user uid dir; do
+#         if [ $uid -ge 1000 -a ! -d "$dir" -a $user != "nfsnobody" ]; then
+#           echo "The home directory ($dir) of user $user does not exist." 
+#         fi 
+#       done
+#   ignore_errors: true
+# - name: Ensure all users' home directories exist |  verify no results are returned
+#   command: bash /usr/local/bin/script/user-directory.sh
+#   ignore_errors: true
+
+# - name: create file user .netrc
+#   command: touch /usr/local/bin/script/user_.netrc.sh
+#   ignore_errors: true
+# - name: set permissin file user_.netrc.sh
+#   command: chmod 750 /usr/local/bin/script/user_.netrc.sh
+# - name: Insert scrip to file /usr/local/bin/script/user_.netrc.sh
+#   ansible.builtin.blockinfile:
+#     path: /usr/local/bin/script/user_.netrc.sh
+#     block: |
+#       #!/bin/bash 
+#       for dir in `cat /etc/passwd |\ awk -F: '{ print $6 }'`; do
+#         if [ ! -h "$dir/.netrc" -a -f "$dir/.netrc" ]; then
+#           echo ".netrc file $dir/.netrc exists" 
+#         fi 
+#       done
+#   ignore_errors: true
+# - name: Ensure no users have .netrc files |  verify no results are returned
+#   command: bash /usr/local/bin/script/user_.netrc.sh
+#   ignore_errors: true
+###########################  6.2 User and Group Settings ############
+
+- name: Ensure permissions on /etc/ssh/sshd_config are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/ssh/sshd_config"
+    - "chmod og-rwx /etc/ssh/sshd_config"
+  ignore_errors: true

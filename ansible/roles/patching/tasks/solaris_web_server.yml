@@ -1,0 +1,15 @@
+---
+- name: Update package cache
+  yum:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Update Web Server
+  command: pkg update {{ web_server_version }}
+  args:
+    executable: /usr/bin/pkg
+  
+- name: Start Web server
+  service:
+    name: "{{ web_server }}"
+    state: started

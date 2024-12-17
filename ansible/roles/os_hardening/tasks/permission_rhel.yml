@@ -1,0 +1,26 @@
+---
+- name:  Ensure permissions on /etc/passwd are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/passwd"
+    - "chmod u-x,go-wx /etc/passwd"
+  ignore_errors: true
+
+
+- name:  Ensure permissions on /etc/group are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/group"
+    - "chmod u-x,go-wx /etc/group"
+  ignore_errors: true
+
+- name:  Ensure permissions on /etc/shadow are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/shadow"
+    - "chmod u-x,g-wx,o-rwx /etc/shadow"
+  ignore_errors: true
+
+- name:  Ensure accounts in /etc/passwd use shadowed passwords
+  shell: "sed -e 's/^([a-zA-Z0-9_]*):[^:]*:/1:x:/' -i /etc/passwd"
+  ignore_errors: true

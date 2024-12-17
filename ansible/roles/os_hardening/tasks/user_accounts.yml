@@ -1,0 +1,31 @@
+---
+- name: Read local linux user database
+  ansible.builtin.getent:
+    database: passwd
+    # creates a dict for each user containing UID/HOMEDIR etc...
+  # skip this task if getent was run before without specifying a key (single entry)
+  when: getent_passwd is undefined or
+        getent_passwd | length <= 1
+        
+- name: Extract root account(s) from local user database
+  loop: "{{ getent_passwd.keys() | list }}"
+  when:
+    - getent_passwd[item][1]|int == 0
+  ansible.builtin.set_fact:
+    root_users: "{{ root_users | default([]) + [item] }}"
+
+- name: Ensure default group for the root account is GID 0
+  shell: "usermod -g 0 root"
+  ignore_errors: true
+
+#######    If Apply this Task It will remove user that have ID 0    ###########
+# - name: Remove additional users with UID=0 ("root" user is not touched)     
+#   ansible.builtin.user:                                                           
+#     name: "{{ item }}"
+#     state: absent
+#   loop: "{{ root_users }}"
+#   when:
+#     - os_remove_additional_root_users|bool
+#     - root_users|length > 1
+#     - item != "root"
+###############################################################################

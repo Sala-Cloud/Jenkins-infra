@@ -1,0 +1,100 @@
+---
+- name: Update apt cache | It will ignore if No internet
+  become: true
+  apt:
+    update_cache: yes
+  ignore_errors: true
+- name: Install NTP package on ubuntu | It will ignore if No internet
+  become: true
+  apt:
+    name: ntp
+    state: present
+  ignore_errors: true 
+- name: Start and enable NTP service on ubuntu | It will ignore if No ntp installed
+  become: true
+  service:
+    name: ntp
+    state: started
+    enabled: yes
+  ignore_errors: true
+
+- name: Configure NTP Client | it will ignore if  ntp not yet installed
+  ansible.builtin.lineinfile:
+    path: /etc/ntp.conf
+    regexp: 'pool 0.ubuntu.pool.ntp.org iburst'
+    line: server ntp.amkcambodia.com iburst
+  ignore_errors: true
+
+- name: Configure NTP Client | it will ignore if  ntp not yet installed
+  ansible.builtin.lineinfile:
+    path: /etc/ntp.conf
+    regexp: 'pool 1.ubuntu.pool.ntp.org iburst'
+    line: server ntp1.amkcambodia.com iburst
+  ignore_errors: true
+- name: Configure NTP Client | it will ignore if  ntp not yet installed
+  ansible.builtin.lineinfile:
+    path: /etc/ntp.conf
+    regexp: 'pool 2.ubuntu.pool.ntp.org iburst'
+    line: '#pool 2.ubuntu.pool.ntp.org iburst'
+  ignore_errors: true
+- name: Configure NTP Client | it will ignore if  ntp not yet installed
+  ansible.builtin.lineinfile:
+    path: /etc/ntp.conf
+    regexp: 'pool 3.ubuntu.pool.ntp.org iburst'
+    line: '#pool 3.ubuntu.pool.ntp.org iburst'
+  ignore_errors: true
+
+- name: Configure NTP Client | it will ignore if  ntp not yet installed
+  ansible.builtin.lineinfile:
+    path: /etc/ntp.conf
+    regexp: 'pool ntp.ubuntu.com'
+    line: '#pool ntp.ubuntu.com'
+  ignore_errors: true
+
+# - name: test sync ntp from server
+#   command: ntpdate -u ntp.amkcambodia.com
+#   ignore_errors: true
+
+- name: restart service ntp
+  command: systemctl restart ntp
+  ignore_errors: true
+- name: Set timezone to Asia/Phnom_Penh
+  shell: timedatectl set-timezone Asia/Phnom_Penh
+
+########### Disable ntp & Chrony and follow Hardening ##########
+# - name: Stop and disable NTP service (systemd)
+#   service:
+#     name: ntp
+#     state: stopped
+#     enabled: no
+#   when: ansible_service_mgr == "systemd"
+
+# - name: Stop and disable NTP service (SysV init)
+#   service:
+#     name: ntp
+#     state: stopped
+#     enabled: no
+#   when: ansible_service_mgr == "sysvinit"
+
+# - name: Stop and disable Chrony service (systemd) | Ignore if no service chrony running
+#   service:
+#     name: chronyd
+#     state: stopped
+#     enabled: no
+#   when: ansible_service_mgr == "systemd"
+#   ignore_errors: true 
+# - name: Stop and disable Chrony service (SysV init)
+#   service:
+#     name: chronyd
+#     state: stopped
+#     enabled: no
+#   when: ansible_service_mgr == "sysvinit"
+#   ignore_errors: true 
+
+# - name: enable systemd-timesyncd.service
+#   command: systemctl enable systemd-timesyncd.service
+# - name: start systemd-timesyncd.service
+#   command: systemctl start systemd-timesyncd.service
+# - name: set ntp to true
+#   command: timedatectl set-ntp true
+########### Disable ntp & Chrony ##########

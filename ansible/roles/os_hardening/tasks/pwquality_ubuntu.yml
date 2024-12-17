@@ -1,0 +1,17 @@
+---
+# - name: Ensure updates, patches | It will ignore if no Need internet
+#   shell: 
+#     "apt-get update -y"
+# - name: to install the pam_pwquality module | Ignore if no Internet
+#   shell:
+#       "apt install libpam-pwquality -y"
+#   ignore_errors: true
+
+- name: Ensure password creation requirements are configured on Ubuntu
+  ansible.builtin.template:
+    src: etc/security/pwquality_ubuntu.j2
+    dest: /etc/security/pwquality.conf
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true

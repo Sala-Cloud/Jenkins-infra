@@ -1,0 +1,20 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: true
+
+  tasks:
+    - name: Copy file 
+      ansible.builtin.copy:
+        src: "{{workspace}}/{{upload_file}}"
+        dest: "/home/amkdevops/"
+        mode: '755'
+
+    - name: Run script
+      shell: |
+        sh "/home/amkdevops/{{upload_file}}"
+
+    - name: Delete existing dist folder
+      file:
+        path: "/home/amkdevops/{{upload_file}}"
+        state: absent

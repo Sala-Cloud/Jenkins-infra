@@ -1,0 +1,10 @@
+---
+- name: Import tasks to ec2
+  ansible.builtin.import_tasks: ec2.yml
+  when: 
+    - aws_type == 'ec2'
+
+- name: Import tasks to rds
+  ansible.builtin.import_tasks: rds.yml
+  when: 
+    - aws_type == 'rds'

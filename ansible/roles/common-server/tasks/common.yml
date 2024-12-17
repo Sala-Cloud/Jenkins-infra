@@ -1,0 +1,145 @@
+---
+- name: Fetch OS dependent variables
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+    name: os_vars
+  with_first_found:
+    - files:
+        - "{{ ansible_facts.distribution }}_{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}_{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      skip: true
+  tags: always
+
+# we only override variables with our default, if they have not been specified already
+# by default the lookup functions finds all varnames containing the string, therefore
+# we add ^ and $ to denote start and end of string, so this returns only exact matches
+- name: Set OS dependent variables, if not already defined by user # noqa var-naming
+  ansible.builtin.set_fact:
+    "{{ item.key }}": "{{ item.value }}"
+  when: not lookup('varnames', '^' + item.key + '$')
+  with_dict: "{{ os_vars }}"
+  tags: always
+
+
+- name: Import tasks to configure redhat_original_config
+  ansible.builtin.import_tasks: redhat_original_config.yml
+  tags: original_config
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - sv_commmon_enable | bool
+
+- name: Import tasks to configure solaris_original_config
+  ansible.builtin.import_tasks: solaris_original_config.yml
+  tags: original_config
+  when:
+    - ansible_facts.os_family == 'Solaris'
+    - sv_commmon_enable | bool
+    
+- name: Import tasks to configure ubuntu_original_config
+  ansible.builtin.import_tasks: ubuntu_original_config.yml
+  tags: original_config
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - sv_commmon_enable | bool
+#####################  
+# - name: Import tasks to configure ntp on ubuntu
+#   ansible.builtin.import_tasks: ntp_ubuntu.yml
+#   tags: ntp
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks to configure on RedHat
+#   ansible.builtin.import_tasks: ntp_rhel.yml
+#   tags: ntp
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - sv_commmon_enable | bool
+
+- name: Import tasks to configure on RedHat from version 9
+  ansible.builtin.import_tasks: chrony_rhel.yml
+  tags: ntp
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - sv_commmon_enable | bool
+
+- name: Import tasks to configure dns on debain & RedHat
+  ansible.builtin.import_tasks: dns.yml
+  tags: dns
+  when: 
+    - ansible_facts.os_family != 'Solaris'
+    - sv_commmon_enable | bool
+
+# - name: Import tasks to add dns on solaris
+#   ansible.builtin.import_tasks: dns_solaris.yml
+#   tags: dns
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks to add NTP on solaris
+#   ansible.builtin.import_tasks: ntp_solaris.yml
+#   tags: ntp
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks to add timezone on solaris
+#   ansible.builtin.import_tasks: solaris_timezone.yml
+#   tags: solaris_timezone
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks to configure ubuntu_installation
+#   ansible.builtin.import_tasks: ubuntu_install.yml
+#   tags: installation
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+ 
+############ task for apply password Policy ############
+# - name: Import tasks Password Policy for Redhat7.9
+#   ansible.builtin.import_tasks: redhat_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - sv_commmon_enable | bool
+
+- name: Import tasks Password Policy for Redhat
+  ansible.builtin.import_tasks: redhat9_pw_policy.yml
+  tags: password_policy
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for Ubuntu
+#   ansible.builtin.import_tasks: ubuntu18_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for Ubuntu
+#   ansible.builtin.import_tasks: ubuntu20_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for Ubuntu
+#   ansible.builtin.import_tasks: ubuntu22_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for Solaris
+#   ansible.builtin.import_tasks: solaris_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - sv_commmon_enable | bool
+############ task for apply password Policy ############

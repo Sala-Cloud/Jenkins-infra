@@ -1,0 +1,17 @@
+- import_tasks: "debian.yml"
+  when: ansible_os_family == "Debian"
+- import_tasks: "redhat.yml"
+  when: ansible_os_family == "RedHat"
+
+- import_tasks: "redhat.yml"
+  when: ansible_os_family == "Debian"
+
+# - name: Set Hostnames
+#   hostname:
+#     name: "{{ inventory_hostname }}"
+
+- name: Add alias vi as vim
+  lineinfile:
+    path: /etc/profile
+    state: present
+    line: "alias vi='vim'"

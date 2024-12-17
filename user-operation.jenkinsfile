@@ -1,0 +1,208 @@
+pipeline {
+	agent { label 'master' }
+	environment {
+		AMK_Infrastructure_Room_ID=credentials('AMK_Infrastructure_Hardening_Room_ID')
+		Webex_Token=credentials('Webex_Token')
+		Github_Token=credentials('Github_Token')
+	}
+	// parameters{
+	// 	choice(name: 'ENV',  choices: ['','pre-prod','uat','production'], description: 'Pls choose Environment')
+	// 	choice(name: 'Action',  choices: ['','new','enable','update','disable','delete'], description: 'Pls choose Action')
+	// 	string(name: 'UserName', defaultValue: '', description: 'Please input username')
+	// 	password(name: 'Password', defaultValue: 'DevOps@123', description: 'Please input new password (Action disable and delete no need to input password)')
+	// 	choice(name: 'Group',  choices: ['','Server-Admin','User-Operation','Normal-User'], description: 'Pls choose User Group')
+	// }
+	stages {
+		stage('Parameters'){
+			steps {
+				script {
+					properties([
+						parameters([
+								[$class: 'ChoiceParameter', 
+									choiceType: 'PT_SINGLE_SELECT', 
+									description: 'Select the AppFile from the Dropdown List', 
+									filterLength: 1, 
+									filterable: false, 
+									name: 'ENV', 
+									script: [
+											$class: 'GroovyScript', 
+											fallbackScript: [
+													classpath: [], 
+													sandbox: false, 
+													script: 
+															"return['Could not get The ENV']"
+											], 
+											script: [
+													classpath: [], 
+													sandbox: false, 
+													script: 
+															"return['uat','pre-prod','production']"
+											]
+									]
+								],
+								[$class: 'CascadeChoiceParameter', 
+										choiceType: 'PT_CHECKBOX', 
+										description: 'Select the Server List from the Dropdown List',
+										filterLength: 1,
+										filterable: true, 
+										name: 'Server_List', 
+										referencedParameters: 'ENV', 
+										script:[
+											$class: 'GroovyScript', 
+											fallbackScript: [ 
+												classpath: [], 
+												sandbox: false, 
+												script: "return['Could not get Server_List from AppFile Param']"
+											],
+											script: [ 
+												classpath: [], 
+												sandbox: false, 
+												script: '''
+													if (ENV.equals("uat")){
+														def appName = "user-operation"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/uat/user-operation-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def hosts = []
+														def list = []
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													} 
+													else if(ENV.equals("pre-prod")){
+														def appName = "user-operation"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/pre-prod/user-operation-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def hosts = []
+														def list = []
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+													else if(ENV.equals("production")){
+														def appName = "user-operation"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/production/user-operation-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def hosts = []
+														def list = []
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												'''
+											]
+										]
+								],
+								choice(name: 'Action',  choices: ['','new','enable','update','disable','delete'], description: 'Pls choose Action'),
+								string(name: 'UserName', defaultValue: '', description: 'Please input username'),
+								password(name: 'Password', defaultValue: 'DevOps@123', description: 'Please input new password (Action disable and delete no need to input password)'),
+								choice(name: 'Group',  choices: ['','SuperAdmin','UserOperation','NormalUser'], description: 'Pls choose User Group')
+						])
+					])
+				}
+			}
+    }
+		stage ('Approval') {	
+			steps {
+					script{
+						sh """
+							echo ${Server_List}
+						"""
+						if (Server_List == 'Select All')
+						{
+							env.host = "user-operation"
+						}
+						else{
+							def list = []
+							def result_list = Server_List.tokenize(",")
+							for(int i = 0; i< result_list.size(); i++){
+								if(i%2 == 0){
+									list.add(result_list[i])
+								}
+							}
+							def host = list.join(",")
+							env.host = host
+						}
+						sh """
+							echo ${host}
+						"""
+					}
+					
+					build(job: 'Approval/infrastructure-user-operation',
+								parameters: [
+									string(name: 'UserName', value: "${UserName}"),
+									string(name: 'ENV', value: "${ENV}"),
+									string(name: 'Action', value: "${params.Action}"), 
+									string(name: 'Password', value: "${Password}"),
+									string(name: 'Group', value: "${Group}"),
+									string(name: 'Host', value: "${env.host}")
+								]
+					)		
+			}
+		}
+	}
+	// post {
+	// 	always{
+	// 		script{
+	// 				sh """
+	// 						curl --location 'https://webexapis.com/v1/messages' \
+	// 										--header 'Authorization: ${Webex_Token}' \
+	// 										--form 'roomId=${AMK_Infrastructure_Room_ID}' \
+	// 										--form 'html= <strong>Stage</strong>:  ${params.Action} User ${params.UserName} on Server <br>
+	// 														<strong>Status</strong>: ${currentBuild.currentResult} <br>
+	// 														<strong>Builder</strong>: ${BUILD_USER} '
+	// 				"""       
+	// 		}
+	// 	}
+	// }
+}

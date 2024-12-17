@@ -1,0 +1,217 @@
+---
+- name: Check that the file modprobe.d.orig exists
+  stat:
+    path: /etc/modprobe.d.orig
+  register: stat_result
+- name: backup default config file modprobe.d
+  command: cp -R /etc/modprobe.d /etc/modprobe.d.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file issue.orig exists
+  stat:
+    path: /etc/issue.orig
+  register: stat_result
+- name: backup default config file issue
+  command: cp -R /etc/issue /etc/issue.orig
+  when: not stat_result.stat.exists
+  
+- name: Check that the file issue.net.orig exists
+  stat:
+    path: /etc/issue.net.orig
+  register: stat_result
+- name: backup default config file issue.net
+  command: cp /etc/issue.net /etc/issue.net.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file sysctl.d.orig exists
+  stat:
+    path: /etc/sysctl.d.orig
+  register: stat_result
+- name: backup default config file sysctl.d
+  command: cp -R /etc/sysctl.d /etc/sysctl.d.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file sysctl.conf.orig exists
+  stat:
+    path: /etc/sysctl.conf.orig
+  register: stat_result
+- name: backup default config file sysctl.conf
+  command: cp /etc/sysctl.conf /etc/sysctl.conf.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file rsyslog.conf.orig exists
+  stat:
+    path: /etc/rsyslog.conf.orig
+  register: stat_result
+- name: backup default config file rsyslog.conf
+  command: cp /etc/rsyslog.conf /etc/rsyslog.conf.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file rsyslog.d.orig exists
+  stat:
+    path: /etc/rsyslog.d.orig
+  register: stat_result
+- name: backup default config file rsyslog.d
+  command: cp -R /etc/rsyslog.d /etc/rsyslog.d.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file sudoer.orig exists
+  stat:
+    path: /etc/sudoer.orig
+  register: stat_result
+- name: backup default config file sudoer
+  command: cp -R /etc/sudoers /etc/sudoer.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file sudoers.orig exists
+  stat:
+    path: /etc/sudoers.d.orig
+  register: stat_result
+- name: backup default config file sudoers
+  command: cp -R /etc/sudoers.d /etc/sudoers.d.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file ssh.orig exists
+  stat:
+    path: /etc/ssh.orig
+  register: stat_result
+- name: backup default config file ssh
+  command: cp -R /etc/ssh /etc/ssh.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file sshd_config.orig exists
+  stat:
+    path: /etc/ssh/sshd_config.orig
+  register: stat_result
+- name: backup default config file sshd_config
+  command: cp /etc/ssh/sshd_config /etc/ssh/sshd_config.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file spam.d.orig exists
+  stat:
+    path: /etc/pam.d.orig
+  register: stat_result
+- name: backup default config file pam.d
+  command: cp -R /etc/pam.d /etc/pam.d.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file security.orig exists
+  stat:
+    path: /etc/security.orig
+  register: stat_result
+- name: backup default config file security
+  command: cp -R /etc/security /etc/security.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file login.defs.orig exists
+  stat:
+    path: /etc/login.defs.orig
+  register: stat_result
+- name: backup default config file login.defs
+  command: cp -R /etc/login.defs /etc/login.defs.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file passwd.orig exists
+  stat:
+    path: /etc/passwd.orig
+  register: stat_result
+- name: backup default config file login.defs
+  command: cp -R /etc/passwd /etc/passwd.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file group.orig exists
+  stat:
+    path: /etc/group.orig
+  register: stat_result
+- name: backup default config file group
+  command: cp -R /etc/group /etc/group.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file shadow.orig exists
+  stat:
+    path: /etc/shadow.orig
+  register: stat_result
+- name: backup default config file shadow
+  command: cp -R /etc/shadow /etc/shadow.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file gshadow.orig exists
+  stat:
+    path: /etc/gshadow.orig
+  register: stat_result
+- name: backup default config file shadow
+  command: cp -R /etc/gshadow /etc/gshadow.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file fstab.orig exists
+  stat:
+    path: /etc/fstab.orig
+  register: stat_result
+- name: backup default config file fstab
+  command: cp -R /etc/fstab /etc/fstab.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file apt.orig exists
+  stat:
+    path: /etc/apt.orig
+  register: stat_result
+- name: backup default config file apt
+  command: cp -R /etc/apt/ /etc/apt.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file resolv.conf.orig exists
+  stat:
+    path: /etc/resolv.conf.orig
+  register: stat_result
+- name: backup default config file resolv.conf
+  command: cp /etc/resolv.conf /etc/resolv.conf.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file common-password.orig exists
+  stat:
+    path: /etc/pam.d/common-password.orig
+  register: stat_result
+- name: backup default config file common-password
+  command: cp /etc/pam.d/common-password /etc/pam.d/common-password.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file common-session.orig exists
+  stat:
+    path: /etc/pam.d/common-session.orig
+  register: stat_result
+- name: backup default config file common-session
+  command: cp /etc/pam.d/common-session /etc/pam.d/common-session.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file common-auth.orig exists
+  stat:
+    path: /etc/pam.d/common-auth.orig
+  register: stat_result
+- name: backup default config file common-auth
+  command: cp /etc/pam.d/common-auth /etc/pam.d/common-auth.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file common-account.orig exists
+  stat:
+    path: /etc/pam.d/common-account.orig
+  register: stat_result
+- name: backup default config file common-account
+  command: cp /etc/pam.d/common-account /etc/pam.d/common-account.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file 01-locale-fix.sh.orig exists
+  stat:
+    path: /etc/profile.d/01-locale-fix.sh.orig
+  register: stat_result
+- name: backup default config file 01-locale-fix.sh
+  command: cp /etc/profile.d/01-locale-fix.sh /etc/profile.d/01-locale-fix.sh.orig
+  when: not stat_result.stat.exists
+  ignore_errors: true
+- name: Check that the common-session-noninteractive.orig exists
+  stat:
+    path: /etc/pam.d/common-session-noninteractive.orig
+  register: stat_result
+- name: backup default common-session-noninteractive
+  command: cp /etc/pam.d/common-session-noninteractive /etc/pam.d/common-session-noninteractive.orig
+  when: not stat_result.stat.exists
+  ignore_errors: true

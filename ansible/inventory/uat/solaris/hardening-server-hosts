@@ -1,0 +1,22 @@
+localhost ansible_connection=local
+
+[hardening-server]
+UAT-UPI-SVCG01-uat ansible_ssh_host=192.168.104.211 ansible_ssh_user=amkdevops
+TEST-SV-U01-uat ansible_ssh_host=192.168.104.220 ansible_ssh_user=amkdevops
+PRE-SVRB-APP01-uat ansible_ssh_host=192.168.104.228 ansible_ssh_user=amkdevops
+uat-solr-01-uat ansible_ssh_host=192.168.100.141 ansible_ssh_user=amkdevops
+UAT-CBS-CDB02-uat ansible_ssh_host=192.168.104.216 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-SVBO-U1-uat ansible_ssh_host=192.168.104.217 ansible_ssh_user=amkdevops
+UAT-SVBO-U1-uat ansible_ssh_host=192.168.104.219 ansible_ssh_user=amkdevops
+UAT-SVRB-01-uat ansible_ssh_host=192.168.104.209 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-UPI-DB01-uat ansible_ssh_host=192.168.104.214 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-SWT-SRDB1-uat ansible_ssh_host=192.168.104.198 ansible_ssh_user=amkdevops
+DC-TM4-APP02-uat ansible_ssh_host=192.168.104.204 ansible_ssh_user=amkdevops
+uat-solr-01-uat ansible_ssh_host=192.168.115.15 ansible_ssh_user=amkdevops
+UAT-UPI-PRE01-uat ansible_ssh_host=192.168.104.229 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python"
+TEC-SWT-APP01-uat ansible_ssh_host=192.168.114.5 ansible_ssh_user=amkdevops
+UAT-UPI-TEST01-uat ansible_ssh_host=192.168.104.215 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python"
+CBS-MIG-MST01-uat ansible_ssh_host=192.168.117.29 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python"
+UAT-SWT-DB01-uat ansible_ssh_host=192.168.152.4 ansible_ssh_user=amkdevops
+TEC-SWT-FEA01-uat ansible_ssh_host=192.168.102.201 ansible_ssh_user=amkdevops
+UAT-SV-APP02-uat ansible_ssh_host=192.168.114.4 ansible_ssh_user=amkdevops

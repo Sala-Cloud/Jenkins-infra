@@ -1,0 +1,10 @@
+---
+- name: Install or Update package to the latest version on Solaris
+  pkgutil:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ package_name.split(',') }}"
+
+# Example Nginx,Docker
+    

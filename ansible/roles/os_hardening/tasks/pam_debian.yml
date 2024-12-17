@@ -1,0 +1,25 @@
+---
+- name: Ensure lockout for failed password attempts is configured common-auth
+  ansible.builtin.template:
+    src: etc/pam.d/ubuntu/common-auth.j2
+    dest: /etc/pam.d/common-auth
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+- name: Ensure lockout for failed password attempts is configured common-account
+  ansible.builtin.template:
+    src: etc/pam.d/ubuntu/common-account.j2
+    dest: /etc/pam.d/common-account
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+- name: Ensure password hashing algorithm is SHA-512
+  ansible.builtin.template:
+    src: etc/pam.d/ubuntu/common-password.j2
+    dest: /etc/pam.d/common-password
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true

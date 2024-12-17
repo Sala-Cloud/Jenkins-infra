@@ -1,0 +1,17 @@
+---
+# handlers file for ansible/roles/jboss
+- name: 'start wildfly'
+  become: true
+  ansible.builtin.systemd:
+    state: started
+    name: wildfly
+- name: 'enabled wildfly'
+  become: true
+  ansible.builtin.systemd:
+    name: wildfly
+    enabled: true
+- name: 'restart wildfly'
+  become: true
+  ansible.builtin.systemd:
+    state: restarted
+    name: wildfly

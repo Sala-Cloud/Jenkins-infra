@@ -1,0 +1,12 @@
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "{{ user }}"
+  check_mode: true
+  register: users_result
+- name: disable user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    state: present
+    password_lock: false
+    shell: "/bin/bash"
+  when: false in users_result.values()

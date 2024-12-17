@@ -1,0 +1,8 @@
+---
+- name: Enable Auditing Event on Solaris
+  ansible.builtin.template:
+    src: etc/security/solaris_audit_event.j2
+    dest: /etc/security/audit_event
+    owner: root
+    group: root
+    mode: "0444"

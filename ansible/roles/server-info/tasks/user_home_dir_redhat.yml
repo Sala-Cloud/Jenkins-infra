@@ -1,0 +1,56 @@
+---
+################### to check user in home directory ############
+# - name: Check user home directory
+#   shell: 
+#     "ls /home | grep -v '^lost+found$'"
+#   register: user_home_dir 
+# - name: create file check home user
+#   copy:
+#     content: |
+#           ========== List all User Home Directory ( {{OS}} ) ==========
+#           Server Name: {{ ansible_hostname }}
+#           IP: {{ ansible_default_ipv4['address'] }} 
+#           OS: {{ ansible_distribution }}
+
+#           {{ user_home_dir.stdout }}
+
+#           ======================================================
+
+#     dest: "./list_user_home.txt"
+################### to check user in home directory ############
+####################### To list all users home directory with Modify, Change, Birth and Access
+- name: To list all users home directory with Modify, Change, Birth and Access
+  shell: 
+    stat /home/*
+  register: user_home_dir 
+- name: create file check home user
+  copy:
+    content: |
+          ========== List all User Home Directory ( {{OS}} ) ==========
+          Server Name: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4['address'] }} 
+          OS: {{ ansible_distribution }}
+
+          {{ user_home_dir.stdout }}
+
+          ======================================================
+
+    dest: "./list_user_home.txt"
+####################### To list all users home directory with Modify, Change, Birth and Access
+- name: Store file into /tmp/list_user_home/
+  ansible.builtin.fetch:
+    src: ./list_user_home.txt
+    dest: /tmp/list_user_home/
+
+- name: Remove list_user_home.txt file
+  ansible.builtin.file:
+    path: './list_user_home.txt'
+    state: absent
+# - name: usertest
+#   shell: |
+#     chage --inactive 90 sa-vicheka
+#     chage --mindays 7  --maxdays 90 --warndays 14 sa-vicheka
+#   register: usertest
+# - name: user amkuser1
+#   command: chage --mindays 1 --maxdays 90 --warndays 14 amkuser1
+#   ignore_errors: true

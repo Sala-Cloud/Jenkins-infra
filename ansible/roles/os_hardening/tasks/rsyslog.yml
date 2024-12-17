@@ -1,0 +1,73 @@
+---
+- name: Install rsyslog package | package-08
+  ansible.builtin.package:
+    name: "{{ rsyslog_package }}"
+    state: present
+  tags: rsyslog
+
+- name: Enable service rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    enabled: yes
+
+- name: Configure rsyslog
+  ansible.builtin.template:
+    src: etc/rsyslogs/rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Restart rsyslog
+  tags: syslog
+  
+# - name: Ensure logging is configured
+#   replace:
+#     path: /etc/rsyslog.d/50-default.conf
+#     regexp: 'mail.*'
+#     replace: "mail.*                          -/var/log/mail"
+
+########## 20-ufw.conf ###########
+- name: Ensure logging is configured
+  ansible.builtin.template:
+    src: etc/rsyslog.d/ubuntu/20-ufw.j2
+    dest: /etc/rsyslog.d/20-ufw.conf
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+########## 21-cloudinit.conf ###########
+- name: Ensure logging is configured
+  ansible.builtin.template:
+    src: etc/rsyslog.d/ubuntu/21-cloudinit.j2
+    dest: /etc/rsyslog.d/21-cloudinit.conf
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+########## 50-default.conf ###########
+- name: Ensure logging is configured
+  ansible.builtin.template:
+    src: etc/rsyslog.d/ubuntu/50-default.j2
+    dest: /etc/rsyslog.d/50-default.conf
+    owner: root
+    group: root
+    mode: "0640"
+- name: reload rsyslog
+  command: systemctl restart rsyslog
+  ignore_errors: true
+########## postfix ###########
+- name: Ensure logging is configured
+  ansible.builtin.template:
+    src: etc/rsyslog.d/ubuntu/postfix.j2
+    dest: /etc/rsyslog.d/postfix.conf
+    owner: root
+    group: root
+    mode: "0640"
+- name: reload rsyslog
+  command: systemctl restart rsyslog
+  ignore_errors: true
+- name: reload rsyslog
+  command: systemctl reload rsyslog
+  ignore_errors: true
+- name: reload the rsyslogd
+  command: pkill -HUP rsyslogd

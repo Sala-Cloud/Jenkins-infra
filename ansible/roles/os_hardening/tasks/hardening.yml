@@ -1,0 +1,250 @@
+---
+- name: Fetch OS dependent variables
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+    name: os_vars
+  with_first_found:
+    - files:
+        - "{{ ansible_facts.distribution }}_{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}_{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      skip: true
+  tags: always
+
+# we only override variables with our default, if they have not been specified already
+# by default the lookup functions finds all varnames containing the string, therefore
+# we add ^ and $ to denote start and end of string, so this returns only exact matches
+- name: Set OS dependent variables, if not already defined by user # noqa var-naming
+  ansible.builtin.set_fact:
+    "{{ item.key }}": "{{ item.value }}"
+  when: not lookup('varnames', '^' + item.key + '$')
+  with_dict: "{{ os_vars }}"
+  tags: always
+####################### End Hardening ####################### Disable for appliy password Policy
+# - name: Import tasks to configure modules modprobe
+#   ansible.builtin.import_tasks: modprobe.yml
+#   tags: modprobe
+#   when: 
+#     - os_modprobe_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+# - name: Import tasks to configure apt
+#   ansible.builtin.import_tasks: apt.yml
+#   tags: apt
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - os_apt_enabled | bool
+# - name: Import tasks to configure yum
+#   ansible.builtin.import_tasks: yum.yml
+#   tags: yum
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - os_yum_enabled | bool
+
+# - name: Import tasks to configure sysctl
+#   ansible.builtin.import_tasks: sysctl.yml
+#   tags: sysctl
+#   when: 
+#     - os_sysctl_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+# - name: Import tasks to configure sudo
+#   ansible.builtin.import_tasks: sudo.yml
+#   tags: sudo
+#   when: 
+#     - os_sudo_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+# - name: Import tasks to configure ubuntu_login_defs
+#   ansible.builtin.import_tasks: ubuntu_login_defs.yml
+#   tags: login_defs
+#   when: 
+#     - os_login_defs_enabled | bool
+#     - ansible_facts.os_family == 'Debian'
+# - name: Import tasks to configure redhat_login_defs
+#   ansible.builtin.import_tasks: redhat_login_defs.yml
+#   tags: login_defs
+#   when: 
+#     - os_login_defs_enabled | bool
+#     - ansible_facts.os_family == 'RedHat'
+
+# - name: Import tasks to configure minimize_access
+#   ansible.builtin.import_tasks: minimize_access.yml
+#   tags: minimize_access
+#   when: 
+#     - os_minimize_access_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+# - name: Import tasks to configure permission_ubuntu
+#   ansible.builtin.import_tasks: permission_ubuntu.yml
+#   tags: permission_ubuntu
+#   when: 
+#     - os_permission_enabled | bool
+#     - ansible_facts.os_family == 'Debian'
+
+# - name: Import tasks to configure permission_rhel
+#   ansible.builtin.import_tasks: permission_rhel.yml
+#   tags: permission_rhel
+#   when: 
+#     - os_permission_enabled | bool
+#     - ansible_facts.os_family == 'RedHat'
+
+# - name: Import tasks to harden user accounts
+#   ansible.builtin.import_tasks: user_accounts.yml
+#   tags: user_accounts
+#   when: 
+#     - os_user_accounts_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+# - name: Import tasks to harden sshd
+#   ansible.builtin.import_tasks: ssh.yml
+#   tags: sshd
+#   when: 
+#     - os_sshd_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+
+# - name: Import tasks to warning Banners
+#   ansible.builtin.import_tasks: warning_banners.yml
+#   tags: warning_banners
+#   when: 
+#     - warning_banners_enabled | bool
+#     - ansible_facts.os_family != 'Solaris'
+
+# - name: Import tasks to configure rsyslogs
+#   ansible.builtin.import_tasks: rsyslog.yml
+#   tags: rsyslog
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - rsyslogs_enabled | bool
+
+# - name: Import tasks to configure solaris11.4L1-harden.yml
+#   ansible.builtin.import_tasks: solaris11.4L1-harden.yml
+#   tags: solaris
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - solaris_enabled | bool
+
+# - name: Import tasks to configure Solaris Password
+#   ansible.builtin.import_tasks: solaris_pw.yml
+#   tags: solaris
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - solaris_enabled | bool    
+
+
+# - name: Import tasks to configure solaris_auditEvent
+#   ansible.builtin.import_tasks: solaris_auditEvent.yml
+#   tags: solaris
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - solaris_enabled | bool
+
+# - name: Import tasks to configure pam.d in debian
+#   ansible.builtin.import_tasks: pam_debian.yml
+#   tags: pam.d
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - os_pam_enabled | bool
+
+# - name: Import tasks to configure pwquality_rhel
+#   ansible.builtin.import_tasks: pwquality_rhel.yml
+#   tags: pwquality
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - pwquality_enabled | bool
+
+# - name: Import tasks to configure pwquality_ubuntu
+#   ansible.builtin.import_tasks: pwquality_ubuntu.yml
+#   tags: pwquality
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - pwquality_enabled | bool
+
+# - name: Import tasks to configure ssh_solaris
+#   ansible.builtin.import_tasks: ssh_solaris.yml
+#   tags: sshd
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - os_sshd_enabled | bool
+
+# - name: Import tasks to configure Setting on RedHat
+#   ansible.builtin.import_tasks: rhel_other.yml
+#   tags: Setting_RedHat
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - os_rhel_other | bool
+# - name: Import tasks to configure Setting on Ubuntu
+#   ansible.builtin.import_tasks: ubuntu_other.yml
+#   tags: Setting_Ubuntu
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - os_ubuntu_other | bool
+####################### End Hardening #######################
+####################### Password Policy #######################
+
+# - name: Import tasks to configure ubuntu_original_config
+#   ansible.builtin.import_tasks: ../common-server/tasks/ubuntu_original_config.yml
+#   tags: original_config
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks to configure redhat_original_config
+#   ansible.builtin.import_tasks: ../common-server/tasks/redhat_original_config.yml
+#   tags: original_config
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks to configure solaris_original_config
+#   ansible.builtin.import_tasks: ../common-server/tasks/solaris_original_config.yml
+#   tags: original_config
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for Redhat 7.x
+#   ansible.builtin.import_tasks: ../common-server/tasks/redhat_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for Redhat 9.x
+#   ansible.builtin.import_tasks: ../common-server/tasks/redhat9_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'RedHat'
+#     - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for ubuntu18.04
+#   ansible.builtin.import_tasks: ../common-server/tasks/ubuntu18_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+- name: Import tasks Password Policy for ubuntu20.04
+  ansible.builtin.import_tasks: ../common-server/tasks/ubuntu20_pw_policy.yml
+  tags: password_policy
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - sv_commmon_enable | bool
+
+# - name: Import tasks Password Policy for ubuntu22.04
+#   ansible.builtin.import_tasks: ../common-server/tasks/ubuntu22_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Debian'
+#     - sv_commmon_enable | bool
+
+
+# - name: Import tasks Password Policy for Solaris
+#   ansible.builtin.import_tasks: ../common-server/tasks/solaris_pw_policy.yml
+#   tags: password_policy
+#   when:
+#     - ansible_facts.os_family == 'Solaris'
+#     - sv_commmon_enable | bool
+####################### End Password Policy #######################

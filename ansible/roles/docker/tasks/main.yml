@@ -1,0 +1,57 @@
+---
+# tasks file for ansible/roles/docker
+- name: On Debian OS Family
+  block:
+    - name: Add signing key
+      apt_key:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        state: present
+    - name: Register repository on Debian OS Family
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+  when: ansible_os_family == "Debian"
+
+- name: Register repository on RedHat OS Family
+  get_url:
+    url: "https://download.docker.com/linux/centos/docker-ce.repo"
+    dest: "/etc/yum.repos.d/docker-ce.repo"
+    mode: 0644
+    owner: root
+    group: root
+  when: ansible_os_family == "RedHat"
+
+- name: Install required package
+  package:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - docker-ce
+    - python3-pip
+    - libpq-dev
+    - python3-dev
+- name: make sure all those things are recent enough
+  command: pip install -U pip setuptools
+- name: Install docker pip
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - setuptools
+    - docker
+    - docker-compose
+    - psycopg2-binary
+    - pyopenssl
+
+- name: Ensure service starts
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: add amk devops to docker group
+  user:
+    name: "amkdevops"
+    append: yes
+    groups: docker

@@ -1,0 +1,15 @@
+---
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install or Update package to the latest version on Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ package_name.split(',') }}"
+
+# Example Nginx,Docker
+    

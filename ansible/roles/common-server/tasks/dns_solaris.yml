@@ -1,0 +1,27 @@
+---
+- name: configure dns on Solaris
+  command: echo "{{ item }}"
+  loop:
+    - "svccfg -s dns/client"
+    - "setprop config/domain='amkcambodia.com'"
+    - "setprop config/search='amkcambodia.com' "
+    - "setprop config/nameserver=net_address:(search amkcambodia.com 192.168.105.219)"
+    - "exit"
+
+- name: configure dns on Solaris
+  command: echo "{{ item }}"
+  loop:
+    - "svccfg -s name-service/switch"
+    - "setprop config/host=astring:'files dns'"
+    - "setprop config/ipnode=astring:'files dns'"
+    - "listprop config"
+    - "exit"
+
+- name: Enabledns client refress restart refresh Solaris
+  command: echo "{{ item }}"
+  loop:
+    - "svcadm enable dns/client"
+    - "svcadm refresh dns/client"
+    - "svcadm restart dns/client"
+    - "svcadm refresh svc:/system/name-service/switch"
+    - "svcadm restart svc:/system/name-service/switch"

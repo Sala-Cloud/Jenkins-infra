@@ -1,0 +1,45 @@
+---
+- name: Configure DNS on RedHat & Ubuntu
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    regexp: '^(.*)nameserver(.*)$' 
+    line: 'search amkcambodia.com'
+    backrefs: yes  
+- name: Configure DNS 192.168.103.219
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    insertafter: '^search amkcambodia.com'
+    line: 'nameserver 192.168.103.219'
+
+- name: Configure DNS 192.168.103.220
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    insertafter: '^nameserver 192.168.103.219'
+    line: 'nameserver 192.168.103.220'
+
+- name: Configure DNS 192.168.105.219
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    insertafter: '^nameserver 192.168.103.220'
+    line: 'nameserver 192.168.105.219'
+
+- name: Configure DNS on RedHat9.x
+  ansible.builtin.lineinfile:
+    path: /etc/NetworkManager/system-connections/ens192.nmconnection
+    regexp: '^(.*)dns=(.*)$' 
+    line: 'dns=192.168.103.219;192.168.103.220;192.168.105.219;'
+    backrefs: yes
+  ignore_errors: true
+- name: Configure DNS 192.168.103.219
+  ansible.builtin.lineinfile:
+    path: /etc/NetworkManager/system-connections/ens192.nmconnection
+    insertafter: '^dns=192.168.103.219;192.168.103.220;192.168.105.219;'
+    line: 'dns-search=amkcambodia.com;'
+  ignore_errors: true
+# - name: Configure DNS on RedHat9.x
+#   ansible.builtin.lineinfile:
+#     path: /etc/NetworkManager/system-connections/ens192.nmconnection
+#     regexp: '^(.*)dns-(.*)$' 
+#     line: 'dns-search=amkcambodia.com;'
+#     backrefs: yes
+#   ignore_errors: true

@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: no
+  any_errors_fatal: yes
+
+  tasks:
+    - name: Create a hostfile file with permissions
+      file:
+        path: "{{workspace}}/ansible/inventory/{{ENV}}/custom-hosts"
+        state: touch
+        mode: u=rwx,g=rx,o=rx
+        # owner: jenkins
+
+    - name: output custom-hosts
+      copy:
+        content: 'common-server ansible_ssh_host={{ server_ip }} ansible_ssh_user={{ user }} ansible_ssh_pass="{{ password }}"'
+        dest: "{{workspace}}/ansible/inventory/{{ENV}}/custom-hosts"
+      ignore_errors: yes 
+      

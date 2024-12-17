@@ -1,0 +1,14 @@
+---
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: update nginx version
+  command: echo -e '\n' | add-apt-repository ppa:nginx/stable
+
+- name: install nginx 
+  command: apt install nginx -y
+
+- name: restart nginx 
+  command:  systemctl restart nginx

@@ -1,0 +1,14 @@
+---
+- name: Update package cache
+  yum:
+    update_cache: yes
+
+- name: Install or Update package to the latest version on Rhel
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ package_name.split(',') }}"
+
+# Example Nginx,Docker
+    

@@ -1,0 +1,74 @@
+---
+- name: create a backup snapshot before apply password_policy
+  command: beadm create 'B4pw'
+  ignore_errors: true
+- name: backup original login before apply password_policy
+  command: cp /etc/default/login /etc/default/login_bk
+  ignore_errors: true
+- name: backup original policy.conf before apply password_policy
+  command: cp /etc/security/policy.conf /etc/security/policy.conf_bk
+  ignore_errors: true
+- name: backup original passwd before apply password_policy
+  command: cp -R /etc/default/passwd /etc/default/passwd_bk
+  ignore_errors: true
+- name: Set Retry Limit for Account Lockout
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)RETRIES=(.*)$' 
+    line: 'RETRIES=5'
+    backrefs: yes
+- name: Delay between Failed Login Attempts to 4
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)SLEEPTIME=(.*)$' 
+    line: 'SLEEPTIME=4'
+    backrefs: yes
+- name: Set Retry Limit for Account Lockout - LOCK_AFTER_RETRIES
+  lineinfile: 
+    path: /etc/security/policy.conf
+    regexp: '^(.*)LOCK_AFTER_RETRIES=(.*)$' 
+    line: 'LOCK_AFTER_RETRIES=YES'
+    backrefs: yes
+- name: UNLOCK_AFTER 31 minutes
+  lineinfile: 
+    path: /etc/security/policy.conf
+    regexp: '^(.*)UNLOCK_AFTER=(.*)$' 
+    line: 'UNLOCK_AFTER=31m'
+    backrefs: yes
+
+- name: Insert tasks to solaris Policy
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/default/solaris/passwd.j2
+    dest: /etc/default/passwd
+    owner: root
+    group: root
+    mode: "0640"
+- name: Lock Inactive User Accounts
+  command: useradd -D -f 90
+  ignore_errors: true
+# - name: Lock Inactive User Accounts specific User
+#   command: usermod -f 90 user1
+#   ignore_errors: true
+- name: to exception user account Retry lockout
+  command: usermod -K lock_after_retries=no amkdevops
+  ignore_errors: true
+# - name: to exception user account Retry lockout
+#   command: usermod -K lock_after_retries=no weblogic
+#   ignore_errors: true
+- name: to exception user account Retry lockout
+  command: usermod -K lock_after_retries=no grid
+  ignore_errors: true
+
+- name: Set Password Expiration Parameters on Active Accounts to specific user 
+  command: passwd -n 7 -w 14 -x 91 amkuser1
+  ignore_errors: true
+######### Set pw policy specific user [Required to change pw next login] ######### 
+# required to change password only one time
+# - name: set password never expire to user on Solaris
+#   command: passwd -x 0 UserName
+#   ignore_errors: true
+######### Set pw policy specific user ######### 
+- name: restart service cashe
+  command: svcadm restart svc:/system/name-service/cache
+  ignore_errors: true
+

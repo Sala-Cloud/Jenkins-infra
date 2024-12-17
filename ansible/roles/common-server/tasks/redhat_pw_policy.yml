@@ -1,0 +1,177 @@
+---
+######### RedHat 7.9 ##########
+- name: Insert tasks to setting pwquality.conf
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/security/pwquality_rhel.j2
+    dest: /etc/security/pwquality.conf
+    owner: root
+    group: root
+    mode: "0640"
+#### Login.defs ###    
+# - name: Insert tasks to setting rehat-login.defs RedHat
+#   ansible.builtin.template:
+#     src: ../../os_hardening/templates/etc/redhat-login.defs.j2
+#     dest: /etc/login.defs
+#     owner: root
+#     group: root
+#     mode: "0640"
+- name: Set PASS_MAX_DAYS 90 RedHat
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_MAX_DAYS(.*)$' 
+    line: 'PASS_MAX_DAYS 90'
+    backrefs: yes
+- name: Set PASS_MIN_DAYS 1 RedHat
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_MIN_DAYS(.*)$' 
+    line: 'PASS_MIN_DAYS 1'
+    backrefs: yes
+- name: Set PASS_MIN_LEN 1 RedHat
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_MIN_LEN(.*)$' 
+    line: 'PASS_MIN_LEN  12'
+    backrefs: yes
+- name: Set PASS_WARN_AGE 14 RedHat
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_WARN_AGE(.*)$' 
+    line: 'PASS_WARN_AGE 14'
+    backrefs: yes
+
+#### End Login.defs ###    
+- name: Insert tasks to setting password-auth RedHat
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/pam.d/redhat/password-auth.j2
+    dest: /etc/pam.d/password-auth
+    owner: root
+    group: root
+    mode: "0640"
+- name: Insert tasks to setting system-auth RedHat
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/pam.d/redhat/system-auth.j2
+    dest: /etc/pam.d/system-auth
+    owner: root
+    group: root
+    mode: "0640"
+- name: resart service  pam-auth-update
+  command: sudo pam-auth-update --force --package
+  ignore_errors: true
+  
+- name:  Ensure default user shell timeout is 900 seconds or less
+  ansible.builtin.lineinfile:
+    path: /etc/bashrc
+    insertafter: '^# /etc/bashrc'
+    line: 'readonly TMOUT=900 ; export TMOUT'
+# - name:  Ensure default user shell timeout is 900 seconds or less
+#   ansible.builtin.lineinfile:
+#     path: /etc/profile
+#     insertafter: '^# /etc/profile'
+#     line: 'readonly TMOUT=900 ; export TMOUT'
+- name: Insert tasks to setting sshd_config RedHat
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/ssh/redhat/sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: "0640"
+############ Stopped Use because use task above
+# - name: Set ClientAliveInterval
+#   ansible.builtin.lineinfile:
+#     path: /etc/ssh/sshd_config
+#     regexp: '^(.*)ClientAliveInterval(.*)$' 
+#     line: 'ClientAliveInterval 0'
+#     backrefs: yes
+# - name: Set ClientAliveCountMax
+#   ansible.builtin.lineinfile:
+#     path: /etc/ssh/sshd_config
+#     regexp: '^(.*)ClientAliveCountMax(.*)$' 
+#     line: 'ClientAliveCountMax 3'
+#     backrefs: yes
+################# Stop used 
+- name: Ensure lockout for failed password attempts is configured - deny 5
+  ansible.builtin.lineinfile:
+    path: /etc/security/faillock.conf
+    regexp: '^(.*)deny =(.*)$' 
+    line: 'deny = 5'
+    backrefs: yes
+  ignore_errors: true
+- name: Ensure lockout for failed password attempts is configured unlock_time = 1800
+  ansible.builtin.lineinfile:
+    path: /etc/security/faillock.conf
+    regexp: '^(.*)unlock_time =(.*)$' 
+    line: 'unlock_time = 1800'
+    backrefs: yes
+  ignore_errors: true
+- name:  Ensure permissions on /etc/passwd are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/passwd"
+    - "chmod u-x,go-wx /etc/passwd"
+  ignore_errors: true
+
+- name:  Ensure permissions on /etc/group are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/group"
+    - "chmod u-x,go-wx /etc/group"
+  ignore_errors: true
+
+- name:  Ensure permissions on /etc/shadow are configured
+  shell: "{{item}}"
+  loop:
+    - "chown root:root /etc/shadow"
+    - "chmod u-x,g-wx,o-rwx /etc/shadow"
+  ignore_errors: true
+
+- name:  Ensure accounts in /etc/passwd use shadowed passwords
+  shell: "sed -e 's/^([a-zA-Z0-9_]*):[^:]*:/1:x:/' -i /etc/passwd"
+  ignore_errors: true
+######### Set pw policy specific user ######### 
+# - name: Ensure password expiration PASS_MAX_DAYS 90, PASS_MIN_DAYS 1 1, PASS_WARN_AGE 14
+#   command: chage --mindays 1 --maxdays 90 --warndays 14 amkuser1
+#   ignore_errors: true
+- name:  Ensure inactive password lock is 90 days
+  command: useradd -D -f 90
+#   ignore_errors: true
+# - name: Ensure inactive password lock is 90 days
+#   command: chage --inactive 90 amkuser1
+#   ignore_errors: true
+# - name: to set password NEVER Expire
+#   command: passwd -x -1 UserName
+#   ignore_errors: true
+######### Set pw policy specific user ######### 
+- name: user sa-sreu
+  command: chage --mindays 1 --maxdays 90 --warndays 14 sa-sreu
+  ignore_errors: true
+- name: user
+  command:  chage --mindays 1 --maxdays 90 --warndays 14 sa-synan
+  ignore_errors: true
+# - name: user
+#   command:  chage --mindays 1 --maxdays 90 --warndays 14 sa-synan
+#   ignore_errors: true
+# - name: user
+#   command:  chage --mindays 1 --maxdays 90 --warndays 14 sa-vicheka
+#   ignore_errors: true
+# - name: user
+#   command:  chage --mindays 1 --maxdays 90 --warndays 14 svc-apm
+#   ignore_errors: true
+# - name: user 
+#   command:  chage --mindays 1 --maxdays 90 --warndays 14 rstuser1
+#   ignore_errors: true
+# - name: user 
+#   command:  chage --mindays 1 --maxdays 90 --warndays 14 rstuser2
+#   ignore_errors: true
+# - name: Delete user sa-kvisal
+#   command: userdel -r sa-kvisal
+#   ignore_errors: true
+# - name: Delete user sa-kvisal
+#   command: userdel -r sa-kvisal
+#   ignore_errors: true
+# - name: delete user sa-vichhay
+#   command: rm -rf sa-vichhay
+#   ignore_errors: true
+# - name: delete user sa-vichhay
+#   command: rm -rf sa-vichhay
+#   ignore_errors: true

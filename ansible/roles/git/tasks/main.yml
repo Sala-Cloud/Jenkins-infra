@@ -1,0 +1,17 @@
+---
+# tasks file for ansible/roles/git
+- name: "Include os-specific vars"
+  include_vars: "{{ ansible_os_family | lower }}.yml"
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ Git }}"
+- name: Enable Git
+  copy:
+    content: "source scl_source enable rh-git29"
+    dest: /etc/profile.d/rh-git.sh
+  become: true
+  when: ansible_os_family == "RedHat"

@@ -1,0 +1,99 @@
+---
+- name: Run "yum update"
+  yum:
+    update_cache: yes
+- name: Install java
+  yum:
+    pkg: "java-1.8.0-openjdk"
+    state: present
+- name: Create group wildfly
+  group:
+    name: wildfly
+    state: present
+
+- name: Create user wildfly
+  user:
+    name: wildfly
+    groups: wildfly
+    home: /opt/wildfly
+    create_home: false
+    shell: /sbin/nologin
+    state: present
+- name: Download wildfly
+  ansible.builtin.get_url:
+    url: https://github.com/wildfly/wildfly/releases/download/{{WILDFLY_VERSION}}/wildfly-{{WILDFLY_VERSION}}.tar.gz
+    dest: /tmp
+- name: Extract wildfly-{{WILDFLY_VERSION}}.tar.gz into /opt/
+  ansible.builtin.unarchive:
+    src: /tmp/wildfly-{{WILDFLY_VERSION}}.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Create a symbolic link
+  ansible.builtin.file:
+    src: /opt/wildfly-{{WILDFLY_VERSION}}
+    dest: /opt/wildfly
+    state: link
+    owner: wildfly
+    group: wildfly
+    force: yes
+- name: Create a wildfly directory
+  ansible.builtin.file:
+    path: /etc/wildfly
+    state: directory
+    mode: '0755'
+    recurse: true
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: /opt/wildfly/docs/contrib/scripts/systemd/wildfly.conf
+    dest: /etc/wildfly/
+    owner: wildfly
+    group: wildfly
+    remote_src: yes
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: /opt/wildfly/docs/contrib/scripts/systemd/launch.sh
+    dest: /opt/wildfly/bin/
+    owner: wildfly
+    group: wildfly
+    remote_src: yes
+- name: parse /tmp directory
+  find:
+    paths: /opt/wildfly/bin/
+    patterns: '*.sh'
+  register: list_of_files
+
+- debug:
+    var: item.path
+  with_items: "{{ list_of_files.files }}"
+
+- name: change permissions
+  file:
+    path: "{{ item.path }}"
+    mode: a+x
+  with_items: "{{ list_of_files.files }}"
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: /opt/wildfly/docs/contrib/scripts/systemd/wildfly.service
+    dest: /etc/systemd/system/
+    remote_src: yes
+- name: Recursively change ownership of a directory
+  command: chown -R wildfly:wildfly /opt/wildfly
+- name: Recursively change ownership
+  ansible.builtin.file:
+    path: /opt/wildfly-{{WILDFLY_VERSION}}
+    state: directory
+    recurse: yes
+    owner: wildfly
+    group: wildfly
+- name: 'start wildfly'
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+    state: started
+    name: wildfly
+- name: 'enabled wildfly'
+  become: true
+  ansible.builtin.systemd:
+    name: wildfly
+    enabled: true

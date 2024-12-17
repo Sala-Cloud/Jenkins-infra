@@ -1,0 +1,592 @@
+pipeline {
+	agent { label 'master' }
+	environment {
+		AMK_Infrastructure_Room_ID=credentials('AMK_Infrastructure_Hardening_Room_ID')
+		Webex_Token=credentials('Webex_Token')
+	}
+	stages {
+		stage('Parameters'){
+			steps {
+				script {
+					properties([
+						parameters([
+							[$class: 'ChoiceParameter', 
+								choiceType: 'PT_SINGLE_SELECT', 
+								description: 'Select the AppFile from the Dropdown List', 
+								filterLength: 1, 
+								filterable: false, 
+								name: 'ENV', 
+								script: [
+										$class: 'GroovyScript', 
+										fallbackScript: [
+												classpath: [], 
+												sandbox: false, 
+												script: 
+														"return['Could not get The ENV']"
+										], 
+										script: [
+												classpath: [], 
+												sandbox: false, 
+												script: 
+														"return['uat','pre-prod','production']"
+										]
+								]
+							],
+							
+							booleanParam(name: 'ubuntu', defaultValue: false, description: 'Select Ubuntu'),
+							[$class: 'CascadeChoiceParameter', 
+									choiceType: 'PT_CHECKBOX', 
+									description: 'Select the Server List from the Dropdown List',
+									filterLength: 1,
+									filterable: true, 
+									name: 'Server_List_Ubuntu', 
+									referencedParameters: 'ENV,ubuntu', 
+									script:[
+										$class: 'GroovyScript', 
+										fallbackScript: [ 
+											classpath: [], 
+											sandbox: false, 
+											script: "return['Could not get Server_List from AppFile Param']"
+										],
+										script: [ 
+											classpath: [], 
+											sandbox: false, 
+											script: '''
+												if (ENV.equals("uat")){
+													def hosts = []
+													def list = []
+													if(ubuntu){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/uat/ubuntu/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+												else if (ENV.equals("pre-prod")){
+													def hosts = []
+													def list = []
+													if(ubuntu){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/pre-prod/ubuntu/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+												else if (ENV.equals("production")){
+													def hosts = []
+													def list = []
+													if(ubuntu){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/production/ubuntu/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+											'''
+										]
+									]
+							],
+
+							booleanParam(name: 'redhat', defaultValue: false, description: 'Select RedHat'),
+							[$class: 'CascadeChoiceParameter', 
+									choiceType: 'PT_CHECKBOX', 
+									description: 'Select the Server List from the Dropdown List',
+									filterLength: 1,
+									filterable: true, 
+									name: 'Server_List_RedHat', 
+									referencedParameters: 'ENV,redhat', 
+									script:[
+										$class: 'GroovyScript', 
+										fallbackScript: [ 
+											classpath: [], 
+											sandbox: false, 
+											script: "return['Could not get Server_List from AppFile Param']"
+										],
+										script: [ 
+											classpath: [], 
+											sandbox: false, 
+											script: '''
+												if (ENV.equals("uat")){
+													def hosts = []
+													def list = []
+													if (redhat){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/uat/redhat/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+												if (ENV.equals("pre-prod")){
+													def hosts = []
+													def list = []
+													if (redhat){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/pre-prod/redhat/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+												if (ENV.equals("production")){
+													def hosts = []
+													def list = []
+													if (redhat){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/production/redhat/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+											'''
+										]
+									]
+							],
+
+							booleanParam(name: 'solaris', defaultValue: false, description: 'Select Solaris'),
+							[$class: 'CascadeChoiceParameter', 
+									choiceType: 'PT_CHECKBOX', 
+									description: 'Select the Server List from the Dropdown List',
+									filterLength: 1,
+									filterable: true, 
+									name: 'Server_List_Solaris', 
+									referencedParameters: 'ENV,solaris', 
+									script:[
+										$class: 'GroovyScript', 
+										fallbackScript: [ 
+											classpath: [], 
+											sandbox: false, 
+											script: "return['Could not get Server_List from AppFile Param']"
+										],
+										script: [ 
+											classpath: [], 
+											sandbox: false, 
+											script: '''
+												if (ENV.equals("uat")){
+													def hosts = []
+													def list = []
+													if (solaris){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/uat/solaris/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+												else if (ENV.equals("pre-prod")){
+													def hosts = []
+													def list = []
+													if (solaris){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/pre-prod/solaris/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+												else if (ENV.equals("production")){
+													def hosts = []
+													def list = []
+													if (solaris){
+														def appName = "hardening-server"
+														def accessToken = "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".bytes.encodeBase64().toString()
+														def get = new URL("https://raw.githubusercontent.com/amkbank/ansible-infrastructure/main/ansible/inventory/production/solaris/hardening-server-hosts").openConnection();
+														get.setRequestProperty("authorization", "Basic " + accessToken)
+														def content = get.getInputStream().getText()
+														def startCollect = false
+														for(def line : content.split("\\n")) {
+																if(line.contains("["+ appName +"]")){ // This is a starting point of host entries
+																		startCollect = true
+																		continue
+																} else if(startCollect) {
+																		if(!line.allWhitespace && !line.contains("[")){
+																				hosts.add(line.trim())
+																		} else {
+																				break
+																		}
+																} 
+														}
+														list.add("Select All")
+														for (int i = 0; i < hosts.size(); i++){
+															list.add(hosts[i].split(" ")[0,1])
+														}
+														return list
+													}
+												}
+											'''
+										]
+									]
+							],
+
+							booleanParam(name: 'list_upgradable', defaultValue: false, description: 'It will show the upgradable package'),
+							booleanParam(name: 'display_memory_usage', defaultValue: false, description: 'It will show the memory usage of the server'),
+							booleanParam(name: 'display_disk_usage', defaultValue: false, description: 'It will show the disk usage of the server'),
+							booleanParam(name: 'list_user', defaultValue: false, description: 'It will show the user in server'),
+							booleanParam(name: 'list_sudo_user', defaultValue: false, description: 'It will show the sudo user in server'),
+							booleanParam(name: 'list_user_home', defaultValue: false, description: 'It will show the user home directory in server'),
+						])
+					])
+				}
+			}
+		}
+		stage ('Server Infomation') {
+			parallel{
+				stage ("Server Information Ubuntu"){
+					when {
+						expression {
+							return params.ubuntu == true;
+						}
+					}
+					steps {
+						script {
+							env.host = ""
+							if (Server_List_Ubuntu != 'Select All')
+							{
+								def list = []
+								def result_list = Server_List_Ubuntu.tokenize(",")
+								for(int i = 0; i< result_list.size(); i++){
+									if(i%2 == 0){
+										list.add(result_list[i])
+									}
+								}
+								def host = list.join(",")
+								env.host = host
+								sh """
+									echo ${host}
+								"""
+							}
+							
+							def server = env.host ?: "patching-server"
+							sh """
+								echo ${server}
+							"""
+							sh """
+								ansible-playbook ansible/server_info.yml \
+															-i ansible/inventory/${ENV}/ubuntu/patching-server-hosts \
+															-l ${server}  \
+															-e "Webex_Token='${Webex_Token}'" \
+															-e AMK_Infrastructure_Room_ID=${AMK_Infrastructure_Room_ID} \
+															-e list_upgradable=${list_upgradable} \
+															-e display_memory_usage=${display_memory_usage} \
+															-e list_user=${list_user} \
+															-e list_sudo_user=${list_sudo_user} \
+															-e display_disk_usage=${display_disk_usage} \
+															-e list_user_home=${list_user_home} \
+															-e OS=${ENV} """
+						}
+					}
+				}
+				stage ("Server Information Redhat"){
+					when {
+						expression {
+							return params.redhat == true;
+						}
+					}
+					steps {
+						script {
+							env.host = ""
+							if (Server_List_Redhat != 'Select All')
+							{
+								def list = []
+								def result_list = Server_List_Redhat.tokenize(",")
+								for(int i = 0; i< result_list.size(); i++){
+									if(i%2 == 0){
+										list.add(result_list[i])
+									}
+								}
+								def host = list.join(",")
+								env.host = host
+								sh """
+									echo ${host}
+								"""
+							}
+							
+							def server = env.host ?: "patching-server"
+							sh """
+								echo ${server}
+							"""
+							sh """
+								ansible-playbook ansible/server_info.yml \
+															-i ansible/inventory/${ENV}/redhat/patching-server-hosts \
+															-l ${server}  \
+															-e "Webex_Token='${Webex_Token}'" \
+															-e AMK_Infrastructure_Room_ID=${AMK_Infrastructure_Room_ID} \
+															-e list_upgradable=${list_upgradable} \
+															-e display_memory_usage=${display_memory_usage} \
+															-e list_user=${list_user} \
+															-e list_sudo_user=${list_sudo_user} \
+															-e display_disk_usage=${display_disk_usage} \
+															-e list_user_home=${list_user_home} \
+															-e OS=${ENV} """
+						}
+					}
+				}
+				stage ("Configure Patching Solaris"){
+					when {
+						expression {
+							return params.solaris == true;
+						}
+					}
+					steps {
+						script {
+							env.host = ""
+							if( Server_List_Solaris != 'Select All')
+							{
+								def list = []
+								def result_list = Server_List_Solaris.tokenize(",")
+								for(int i = 0; i< result_list.size(); i++){
+									if(i%2 == 0){
+										list.add(result_list[i])
+									}
+								}
+								def host = list.join(",")
+								env.host = host
+								sh """
+									echo ${host}
+								"""
+							}
+							
+							def server = env.host ?: "patching-server"
+							sh """
+								echo ${server}
+							"""
+							sh """
+								ansible-playbook ansible/server_info.yml \
+														-i ansible/inventory/${ENV}/solaris/patching-server-hosts \
+														-l ${server}  \
+														-e "Webex_Token='${Webex_Token}'" \
+														-e AMK_Infrastructure_Room_ID=${AMK_Infrastructure_Room_ID} \
+														-e list_upgradable=${list_upgradable} \
+														-e display_memory_usage=${display_memory_usage} \
+														-e list_user=${list_user} \
+														-e list_sudo_user=${list_sudo_user} \
+														-e display_disk_usage=${display_disk_usage} \
+														-e list_user_home=${list_user_home} \
+														-e OS=${ENV} """
+						}
+					}
+				}
+			}
+		}
+		stage ('Clean Workspace'){
+			steps {
+				script{
+					if(params.list_upgradable == true)
+					{
+						sh """
+							cat /tmp/upgradable/*/*.txt > /tmp/upgradable/list_upgradeable_version.txt
+							curl -F 'roomId=${AMK_Infrastructure_Room_ID}' -F 'files=@/tmp/upgradable/list_upgradeable_version.txt' -F 'text=List Upgarde Package' -H 'Authorization: ${Webex_Token}' --location 'https://webexapis.com/v1/messages'
+							rm -rf /tmp/upgradable/
+						"""
+					}
+					if(params.display_memory_usage == true)
+					{
+						sh """
+							cat /tmp/display_memory_usage/*/*.txt > /tmp/display_memory_usage/display_memory_usage.txt
+							curl -F 'roomId=${AMK_Infrastructure_Room_ID}' -F 'files=@/tmp/display_memory_usage/display_memory_usage.txt' -F 'text=Display Memory Usage' -H 'Authorization: ${Webex_Token}' --location 'https://webexapis.com/v1/messages'
+							rm -rf /tmp/display_memory_usage/
+						"""
+					}
+					if(params.display_disk_usage == true)
+					{
+						sh """
+							cat /tmp/display_disk_usage/*/*.txt > /tmp/display_disk_usage/display_disk_usage.txt
+							curl -F 'roomId=${AMK_Infrastructure_Room_ID}' -F 'files=@/tmp/display_disk_usage/display_disk_usage.txt' -F 'text=Display Disk Usage' -H 'Authorization: ${Webex_Token}' --location 'https://webexapis.com/v1/messages'
+							rm -rf /tmp/display_disk_usage/
+						"""
+					}
+					if(params.list_user == true)
+					{
+						sh """
+							cat /tmp/list_user/*/*.txt > /tmp/list_user/list_user.txt
+							curl -F 'roomId=${AMK_Infrastructure_Room_ID}' -F 'files=@/tmp/list_user/list_user.txt' -F 'text=List User' -H 'Authorization: ${Webex_Token}' --location 'https://webexapis.com/v1/messages'
+							rm -rf /tmp/list_user/
+						"""
+					}
+					if(params.list_sudo_user == true)
+					{
+						sh """
+							cat /tmp/list_sudo_user/*/*.txt > /tmp/list_sudo_user/list_sudo_user.txt
+							curl -F 'roomId=${AMK_Infrastructure_Room_ID}' -F 'files=@/tmp/list_sudo_user/list_sudo_user.txt' -F 'text=List Sudo User' -H 'Authorization: ${Webex_Token}' --location 'https://webexapis.com/v1/messages'
+							rm -rf /tmp/list_sudo_user/
+						"""
+					}
+					if(params.list_user_home == true)
+					{
+						sh """
+							cat /tmp/list_user_home/*/*.txt > /tmp/list_user_home/list_user_home.txt
+							curl -F 'roomId=${AMK_Infrastructure_Room_ID}' -F 'files=@/tmp/list_user_home/list_user_home.txt' -F 'text=List Home User' -H 'Authorization: ${Webex_Token}' --location 'https://webexapis.com/v1/messages'
+							rm -rf /tmp/list_user_home/
+						"""
+					}
+				}
+				cleanWs()
+			}
+		}
+	}
+	// post {
+	// 	always{
+	// 		script{
+	// 				sh """
+	// 						curl --location 'https://webexapis.com/v1/messages' \
+	// 										--header 'Authorization: ${Webex_Token}' \
+	// 										--form 'roomId=${AMK_Infrastructure_Room_ID}' \
+	// 										--form 'html= <strong>Stage</strong>:  ${params.Action} User ${params.UserName} on Server <br>
+	// 														<strong>Status</strong>: ${currentBuild.currentResult} <br>
+	// 														<strong>Builder</strong>: ${BUILD_USER} '
+	// 				"""       
+	// 		}
+	// 	}
+	// }
+}

@@ -1,0 +1,29 @@
+---
+- name: list all user
+  shell: 
+    "getent passwd | cut -d: -f1 | xargs -n 1 sudo -l -U"
+  register: sudo_user_list 
+
+- name: create file list sudo user
+  copy:
+    content: |
+          ========== List all Sudo User ( {{OS}} )==========
+          Server Name: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4['address'] }} 
+          OS: {{ ansible_distribution }}
+          
+          {{ sudo_user_list.stdout }}
+          
+          ======================================================
+
+    dest: "./list_sudo_user.txt"
+
+- name: Store file into /tmp/list_sudo_user/
+  ansible.builtin.fetch:
+    src: ./list_sudo_user.txt
+    dest: /tmp/list_sudo_user/
+
+- name: Remove sudo_user_list.txt file
+  ansible.builtin.file:
+    path: './list_sudo_user.txt'
+    state: absent

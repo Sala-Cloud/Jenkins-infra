@@ -1,0 +1,30 @@
+---
+- name: Disk Usage
+  shell: 
+    "df -h"
+  register: disk_usage
+
+- name: create file get disk usage
+  copy:
+    content: |
+          ========== Display Disk Usage ( {{OS}} )==========
+          
+          Server Name: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4['address'] }} 
+          OS: {{ ansible_distribution }}
+
+          {{ disk_usage.stdout }}
+
+          ======================================================
+
+    dest: "./display_disk_usage.txt"
+
+- name: Store file into /tmp/display_disk_usage/
+  ansible.builtin.fetch:
+    src: ./display_disk_usage.txt
+    dest: /tmp/display_disk_usage/
+
+- name: Remove display_disk_usage.txt file
+  ansible.builtin.file:
+    path: './display_disk_usage.txt'
+    state: absent

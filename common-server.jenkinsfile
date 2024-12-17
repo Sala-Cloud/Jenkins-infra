@@ -1,0 +1,107 @@
+pipeline {
+	agent { label 'master' }
+    environment {
+        AMK_Room_ID = credentials('AMK_Infrastructure_Hardening_Room_ID')
+        Webex_Token= credentials('Webex_Token')
+    }
+    parameters{
+        choice(name: 'OS',  choices: ['','ubuntu','redhat','solaris'], description: 'Pls choose OS')
+        string(name: 'Server_Name', defaultValue: '', description: '')
+        string(name: 'IP_Address', defaultValue: '', description: '')
+        string(name: 'UserName', defaultValue: '', description: '')
+        password(name: 'Password', defaultValue: '', description: 'Please input new password')
+        choice(name: 'ENV',  choices: ['','pre-prod','uat','production'], description: 'Pls choose Environment')
+        booleanParam(name: 'Git', defaultValue: false, description: 'Select to Install Git')
+        booleanParam(name: 'Docker', defaultValue: false, description: 'Select to Install Docker')
+        booleanParam(name: 'Apache', defaultValue: false, description: 'Select to Install Apache')
+        booleanParam(name: 'Nginx', defaultValue: false, description: 'Select to Install Nginx')
+        booleanParam(name: 'Jboss', defaultValue: false, description: 'Select to Install Jboss')
+        booleanParam(name: 'Java', defaultValue: false, description: 'Select to Install Java')
+    }
+    stages {
+        stage ('Custom Host') {
+            steps {
+                script {
+                    // echo "${env.Password} > ${env.WORKSPACE}/ansible/password.txt"
+                    // echo "password: ${env.Password} > ${env.WORKSPACE}/ansible/user_password.yml"
+                    // sh "ansible-vault encrypt ansible/user_password.yml --vault-password-file ansible/password.txt"
+                    sh """#!/bin/sh -l
+                        ansible-playbook ansible/custom-host.yml \
+                                         -i ansible/inventory/${ENV}/hosts \
+                                         -e ENV=${ENV} \
+                                         -e password=${Password} \
+                                         -e server_ip=${IP_Address} \
+                                         -e user=${UserName} \
+                                         -e workspace=${WORKSPACE}             
+                    """
+                }
+            }
+        }
+        stage ('Configure Common Server') {
+            steps {
+                script {
+                    sh """#!/bin/sh -l
+                        ansible-playbook ansible/common-server.yml \
+                                        -i ansible/inventory/${ENV}/custom-hosts \
+                                        -e "ansible_sudo_pass=${Password}" \
+                                        -e docker=${Docker} \
+                                        -e git=${Git} \
+                                        -e nginx=${Nginx} \
+                                        -e apache=${Apache} \
+                                        -e jboss=${Jboss} \
+                                        -e java=${Java} | tee -a result-logs-${BUILD_NUMBER}.txt
+                         echo "OS: ${OS}" > common-server-result-${BUILD_NUMBER}.txt
+                         echo "Enviroments: ${ENV}" >> common-server-result-${BUILD_NUMBER}.txt
+                         echo "Server_Name: ${Server_Name}" >> common-server-result-${BUILD_NUMBER}.txt
+                         echo "IP_Address: ${IP_Address}" >> common-server-result-${BUILD_NUMBER}.txt
+                         grep -A99 "PLAY RECAP" result-logs-${BUILD_NUMBER}.txt >> common-server-result-${BUILD_NUMBER}.txt
+                    """
+                    sh """
+                        curl -F 'roomId=${AMK_Room_ID}' -F 'files=@${WORKSPACE}/result-logs-${BUILD_NUMBER}.txt' -F 'text=Result Logs Report attached' -H 'Authorization: Bearer OTI0ZGQzYjItZWZmOC00MDFlLWI0NDItZDJjMjY1YzFiNWNhMWJiY2YwNDktOTA3_PF84_e9d367a2-7717-4865-b0b8-3f5b644c2265' --location 'https://webexapis.com/v1/messages'
+                    """
+                    sh """
+                        curl -F 'roomId=${AMK_Room_ID}' -F 'files=@${WORKSPACE}/common-server-result-${BUILD_NUMBER}.txt' -F 'text=Result Report attached' -H 'Authorization: Bearer OTI0ZGQzYjItZWZmOC00MDFlLWI0NDItZDJjMjY1YzFiNWNhMWJiY2YwNDktOTA3_PF84_e9d367a2-7717-4865-b0b8-3f5b644c2265' --location 'https://webexapis.com/v1/messages'
+                    """
+                }
+            }
+        }
+        stage ('Add Host') {
+            steps {
+                script {
+                    sh """#!/bin/sh -l
+                        ansible-playbook ansible/add-host.yml \
+                                         -i ansible/inventory/${ENV}/hosts \
+                                         -e ENV=${ENV} \
+                                         -e OS=${OS} \
+                                         -e server_name=${Server_Name} \
+                                         -e server_ip=${IP_Address} \
+                                         -e user=${UserName} \
+                                         -e password=${Password} \
+                                         -e workspace=${WORKSPACE}
+                                        
+                    """
+                }
+            }
+        }
+        // stage('Clean Up') {
+        //     steps {
+        //         // Clean before build
+        //         cleanWs()
+        //     }
+        // }
+    }
+    //  post {
+    //      always{
+    //         script{
+    //             sh """
+    //                 curl --location 'https://webexapis.com/v1/messages' \
+    //                         --header 'Authorization: Bearer ${Webex_Token}' \
+    //                         --form 'roomId=${AMK_Room_ID}' \
+    //                         --form 'html= <strong>Stage</strong>:  Configure Common Server <br>
+    //                                 <strong>Status</strong>: ${currentBuild.currentResult} <br>
+    //                                 <strong>Builder</strong>: ${BUILD_USER} '
+    //             """       
+    //         }
+    //      }
+    //  }
+}

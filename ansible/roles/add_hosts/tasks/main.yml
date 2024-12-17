@@ -1,0 +1,8 @@
+---
+# tasks file for ansible/roles/add_hosts
+- import_tasks: add-host-debian.yml
+  when: OS == 'ubuntu'
+- import_tasks: add-host-redhat.yml
+  when: OS == 'redhat'
+- import_tasks: add-host-solaris.yml
+  when: OS == 'solaris'

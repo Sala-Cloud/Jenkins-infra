@@ -1,0 +1,8 @@
+---
+- name: sshd_confi
+  ansible.builtin.template:
+    src: etc/ssh/solaris/sshd_conf
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: "0444"

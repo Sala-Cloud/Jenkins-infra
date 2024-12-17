@@ -1,0 +1,98 @@
+---
+- name: List all user
+  shell: 
+    "cat /etc/passwd"
+  register: list_all_user
+
+- name: List all home directory creation date on Solaris
+  shell: 
+    "stat /export/home/*"
+  register: list_home_dir
+
+# - name: List all home directory creation date on Ubuntu & Redhat
+#   shell: 
+#     "stat /home/*"
+#   register: list_home_dir
+
+- name: create file list all user
+  copy:
+    content: |
+          ========== List all User ( {{OS}} )==========
+          Server Name: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4['address'] }} 
+          OS: {{ ansible_distribution }}
+
+          {{ list_all_user.stdout }}
+
+          {{ list_home_dir.stdout }}
+          ======================================================
+
+    dest: "./list_user.txt"
+
+- name: Store file into /tmp/list_user/
+  ansible.builtin.fetch:
+    src: ./list_user.txt
+    dest: /tmp/list_user/
+
+- name: Remove list_user.txt file
+  ansible.builtin.file:
+    path: './list_user.txt'
+    state: absent
+
+- name: Run script
+  command: usermod -s /bin/false sa-sreu
+  ignore_errors: true
+  
+# - name: creation date of a Linux Operating System
+#   command: stat / | grep Birth
+#   command: ls -l /export/home
+#   ignore_errors: true
+# - name: List all home directory creation date on ubuntu/redhat
+#   command: ls -l /home
+#   ignore_errors: true
+############## Below is tasks Add existing Users to group ##############
+# - name: Ensure the user is in the sa-phanith group
+#   user:
+#     name: sa-phanith
+#     groups: SuperAdmin
+#     append: yes  
+#   ignore_errors: true  # Use cautiously
+
+
+# - name: Ensure the user is in the sa-kerithea group
+#   user:
+#     name: sa-kerithea
+#     groups: SuperAdmin
+#     append: yes  
+#   ignore_errors: true  # Use cautiously
+
+# - name: Ensure the user is in the sa-vicheka group
+#   user:
+#     name: sa-vicheka
+#     groups: SuperAdmin
+#     append: yes  
+#   ignore_errors: true  # Use cautiously
+
+# - name: Ensure the user is in the sa-savi group
+#   user:
+#     name: sa-savi
+#     groups: UserOperation
+#     append: yes  
+#   ignore_errors: true  # Use cautiously
+
+
+# - name: Ensure the user is in the sa-mony group
+#   user:
+#     name: sa-mony
+#     groups: UserOperation
+#     append: yes  
+#   ignore_errors: true  # Use cautiously
+
+############## End tasks Add existing Users to group ##############
+
+# - name: Ensure user sa-kvisal is deleted
+#   user:
+#     name: sa-kvisal
+#     state: absent
+#     remove: yes  # This ensures the home directory is also removed if it exists
+#   ignore_errors: true  # Use cautiously

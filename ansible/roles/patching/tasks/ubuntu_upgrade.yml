@@ -1,0 +1,11 @@
+---
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Upgrade all packages to their latest version on ubuntu
+  apt:
+    name: '*'
+    state: latest
+    force_apt_get: yes

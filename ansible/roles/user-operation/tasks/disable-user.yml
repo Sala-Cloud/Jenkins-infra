@@ -1,0 +1,19 @@
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "{{ user }}"
+  check_mode: true
+  register: users_result
+- name: disable user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    state: present
+    password_lock: true
+    shell: "/sbin/nologin"
+  when: 
+    - false in users_result.values()
+    - ansible_facts.os_family != 'Solaris'
+- name: disable user solaris
+  command: usermod -s /bin/false {{ user }}
+  when: 
+    - false in users_result.values()
+    - ansible_facts.os_family == 'Solaris' 

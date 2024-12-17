@@ -1,0 +1,80 @@
+---
+- name: Create the environment security group
+  ec2_group:
+    name: "{{project}}-rds-sg"
+    description: sg with rule descriptions
+    vpc_id: "{{ vpc_id }}"
+    aws_secret_key: "{{aws_secret_key}}"
+    aws_access_key: "{{aws_access_key}}"
+    region: "ap-southeast-1"
+    tags:
+      Name: "{{project}}-rds-sg"
+    rules:
+      - proto: tcp
+        ports: 3306
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow connections on port 3306
+  register: security_group
+
+- set_fact: vpc_security_group_id="{{ security_group.group_id }}"
+
+- name: Gather information about a particular instance using ID
+  ec2_instance_info:
+    instance_ids:
+      - "{{ ec2_instance }}"
+  register: ec2_info
+  when:
+    - connect_ec2 | bool
+
+- set_fact: ec2_group_id="{{ ec2_info.security_groups.group_id }}"
+  when:
+    - connect_ec2 | bool
+
+- name: Create a DB instance using the default AWS KMS encryption key
+  rds_instance:
+    db_instance_identifier: "{{project}}"
+    db_name: "{{db_name}}"
+    state: present
+    engine: "{{ rds_engine }}"
+    engine_version: "{{ engine_version }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    aws_access_key: "{{ aws_access_key }}"
+    region: "ap-southeast-1"
+    db_instance_class: "{{ db_instance }}"
+    username: "{{ admin_username }}"
+    password: "{{ admin_password }}"
+    allocated_storage: "{{ rds_storage }}"
+    storage_type: "{{ storage_type }}" # GP2, GP3
+    backup_retention_period: "7"
+    publicly_accessible: false
+    deletion_protection: true
+    max_allocated_storage: "{{ max_allocated_storage }}"
+    vpc_security_group_ids:
+      - "{{ vpc_security_group_id }}"
+      - "{{ ec2_group_id }}"
+    multi_az: true
+  register: rds_info
+
+- debug: msg='{{ rds_info }}'
+
+- debug: msg='{{ rds_info | json_query('endpoint.address') }}'
+- debug: msg='{{ rds_info | json_query('endpoint.port') }}'
+- debug: msg='{{ admin_username }}'
+- debug: msg='{{ admin_password }}'
+
+- name: Send Info to webex
+  uri:
+    url: 'https://webexapis.com/v1/messages'
+    method: POST
+    body:
+      roomId:
+        content: "{{Webex_RoomID}}"
+      html:
+        content: "<strong>Endpoint</strong>: {{ rds_info | json_query('endpoint.address') }} <br> <strong>Port</strong>: {{ rds_info | json_query('endpoint.port') }}  <br> <strong>DB Name</strong>: {{ db_name }} <br> <strong>DB Instance</strong>: {{ db_instance }} <br> <strong>Admin Username</strong>: {{ admin_username }} <br>  <strong>Admin Password</strong>: {{ admin_password }} <br>"
+    body_format: form-multipart
+    headers:
+      Authorization: "{{Webex_Token}}"
+    follow_redirects: safe
+  register: result
+
+- debug: msg='{{ result }}'

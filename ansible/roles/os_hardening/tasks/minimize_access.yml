@@ -1,0 +1,39 @@
+---
+- name: Find shadow files
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - /etc/shadow
+    - /etc/gshadow
+    - /etc/shadow-
+    - /etc/gshadow-
+  register: minimize_access_shadow_files
+
+- name: Change shadow ownership to root and mode to 0600 | os-02
+  ansible.builtin.file:
+    dest: "{{ item.item }}"
+    owner: "{{ os_shadow_perms.owner }}"
+    group: "{{ os_shadow_perms.group }}"
+    mode: "{{ os_shadow_perms.mode }}"
+  when: item.stat.exists
+  loop: "{{ minimize_access_shadow_files.results }}"
+
+- name: Find passwd files
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - /etc/passwd
+    - /etc/group
+    - /etc/passwd-
+    - /etc/group-
+  register: minimize_access_passwd_files
+
+- name: Change passwd ownership to root and mode to 0644 | os-03
+  ansible.builtin.file:
+    dest: "{{ item.item }}"
+    owner: "{{ os_passwd_perms.owner }}"
+    group: "{{ os_passwd_perms.group }}"
+    mode: "{{ os_passwd_perms.mode }}"
+  when: item.stat.exists
+  loop: "{{ minimize_access_passwd_files.results }}"
+

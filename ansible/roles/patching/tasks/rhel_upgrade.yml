@@ -1,0 +1,8 @@
+- name: Update package cache
+  yum:
+    update_cache: yes
+
+- name: Upgrade all packages to their latest version on Rhel
+  yum:
+    name: '*'
+    state: latest

@@ -1,0 +1,6 @@
+---
+- name: Include common server to tasks
+  ansible.builtin.include_tasks: common.yml
+  when: sv_commmon_enable | bool
+  tags:
+    - always

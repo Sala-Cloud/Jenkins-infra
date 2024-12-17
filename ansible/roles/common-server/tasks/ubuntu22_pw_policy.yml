@@ -1,0 +1,225 @@
+---
+- name: to install the pam_pwquality module | Ignore if no Internet
+  shell:
+      "apt install libpam-pwquality -y"
+
+########### pwquality #########
+- name: Set minlen | Set minimum password length
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)minlen(.*)$' 
+    line: 'minlen = 12'
+    backrefs: yes
+- name: Set dcredit | Require at least one digit in the new password
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)dcredit(.*)$' 
+    line: 'dcredit = -1'
+    backrefs: yes
+- name: Set ucredit | Require at least one uppercase character in the new password
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)ucredit(.*)$' 
+    line: 'ucredit = -1'
+    backrefs: yes
+- name: Set lcredit | Require at least one lowercase character in the new password
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)lcredit(.*)$' 
+    line: 'lcredit = -1'
+    backrefs: yes
+- name: Set ocredit | Require at least one other character in the new password
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)ocredit(.*)$' 
+    line: 'ocredit = -1'
+    backrefs: yes
+- name: Set minclass | Set minimum number of required classes of characters for the new password
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)minclass(.*)$' 
+    line: 'minclass = 4'
+    backrefs: yes
+- name: Set maxrepeat
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)maxrepeat(.*)$' 
+    line: 'maxrepeat = 3'
+    backrefs: yes
+
+- name: set maxsequence
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    insertafter: '^# local_users_only'
+    line: 'maxsequence = 3'
+
+- name: Set Prompt user
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)retry(.*)$' 
+    line: 'retry = 5'
+    backrefs: yes
+- name: Ensure password number of changed characters is configured difok = 2
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)difok =(.*)$' 
+    line: 'difok = 2'
+    backrefs: yes
+  ignore_errors: true
+# - name: Ensure password quality checking is enforced
+#   ansible.builtin.lineinfile:
+#     path: /etc/security/pwquality.conf
+#     regexp: '^(.*)enforcing =(.*)$' 
+#     line: 'enforcing = 0'
+#     backrefs: yes
+#   ignore_errors: true 
+- name: Ensure password quality is enforced for the root user
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)dictcheck =(.*)$' 
+    line: 'dictcheck = 1'
+    backrefs: yes
+  ignore_errors: true  
+- name: Ensure password quality is enforced for the root user
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^(.*)enforce_for_root(.*)$' 
+    line: 'enforce_for_root'
+    backrefs: yes
+  ignore_errors: true  
+########### pwquality #########
+- name: Insert tasks to pam.d common-account ubuntu22
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/pam.d/ubuntu22/common-account.j2
+    dest: /etc/pam.d/common-account
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+- name: Insert tasks to pam.d common-auth ubuntu22
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/pam.d/ubuntu22/common-auth.j2
+    dest: /etc/pam.d/common-auth
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+- name: Insert tasks to pam.d common-password ubuntu22
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/pam.d/ubuntu22/common-password.j2
+    dest: /etc/pam.d/common-password
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+# - name: resart service  pam-auth-update
+#   command: sudo pam-auth-update --force --package
+#   ignore_errors: true
+#### Login.defs ###   
+# - name: Insert tasks to ubuntu-login.defs
+#   ansible.builtin.template:
+#     src: ../../os_hardening/templates/etc/ubuntu-login.defs.j2
+#     dest: /etc/login.defs
+#     owner: root
+#     group: root
+#     mode: "0640"
+ 
+- name: Set PASS_MAX_DAYS 90
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_MAX_DAYS(.*)$' 
+    line: 'PASS_MAX_DAYS 90'
+    backrefs: yes
+- name: Set PASS_MIN_DAYS 1
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_MIN_DAYS(.*)$' 
+    line: 'PASS_MIN_DAYS 1'
+    backrefs: yes
+- name: Set PASS_WARN_AGE 14 days
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)PASS_WARN_AGE(.*)$' 
+    line: 'PASS_WARN_AGE 14'
+    backrefs: yes
+- name: Set LOGIN_RETRIES 5 
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)LOGIN_RETRIES(.*)$' 
+    line: 'LOGIN_RETRIES           5'
+    backrefs: yes
+- name: Set LOGIN_TIMEOUT 1800 
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)LOGIN_TIMEOUT(.*)$' 
+    line: 'LOGIN_TIMEOUT           1800'
+    backrefs: yes
+- name: Set ENCRYPT_METHOD yescrypt Ubuntu20
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: '^(.*)ENCRYPT_METHOD(.*)$' 
+    line: 'ENCRYPT_METHOD yescrypt'
+    backrefs: yes
+    
+#### Login.defs ###  
+- name: Ensure lockout for failed password attempts is configured deny = 5
+  ansible.builtin.lineinfile:
+    path: /etc/security/faillock.conf
+    regexp: '^(.*)deny =(.*)$' 
+    line: 'deny = 5'
+    backrefs: yes
+  ignore_errors: true
+- name: Ensure lockout for failed password attempts is configured fail_interval = 900
+  ansible.builtin.lineinfile:
+    path: /etc/security/faillock.conf
+    regexp: '^(.*)fail_interval =(.*)$' 
+    line: 'fail_interval = 900'
+    backrefs: yes
+  ignore_errors: true
+- name: Ensure lockout for failed password attempts is configured unlock_time = 1800
+  ansible.builtin.lineinfile:
+    path: /etc/security/faillock.conf
+    regexp: '^(.*)unlock_time =(.*)$' 
+    line: 'unlock_time = 1800'
+    backrefs: yes
+  ignore_errors: true
+
+# - name: Ensure inactive password lock is 90 days for New User account
+#   command: useradd -D -f 90
+# - name: Ensure inactive password lock is 90 days for specific User account
+#   command: chage --inactive 90 amkuser1
+#   ignore_errors: true
+# - name: manual apply password age to specific user
+#   command: chage --mindays 7  --maxdays 90 --warndays 14 amkuser1
+#   ignore_errors: true
+- name: Insert tasks to setting sshd_config RedHat
+  ansible.builtin.template:
+    src: ../../os_hardening/templates/etc/ssh/debian/sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: "0640"
+- name: Ensure default user shell timeout is 900 seconds or less
+  ansible.builtin.blockinfile:
+    path: /etc/profile.d/01-locale-fix.sh
+    block: |
+      TMOUT=900
+      readonly TMOUT
+      export TMOUT
+  ignore_errors: true
+
+# - name: Ensure default user shell timeout is 900 seconds or less
+#   ansible.builtin.blockinfile:
+#     path: /etc/profile.d/01-locale-fix.sh
+#     block: |
+#       TMOUT=900 readonly TMOUT export TMOUT
+#   ignore_errors: true
+- name: grant permissions  for passwd if issue cannot change password
+  command: chmod 644 /etc/passwd
+- name: grant permission for shadow if issue cannot change passwd
+  command: chmod 600 /etc/shadow
+
+#Below is the task to apply pw polict spcific user
+# - name: manual apply password age to specific user
+#   command: chage --mindays 7  --maxdays 90 --warndays 14 amkpgf
+#   ignore_errors: true

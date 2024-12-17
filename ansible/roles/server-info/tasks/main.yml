@@ -1,0 +1,63 @@
+---
+# Listing Upgradeable Package
+- name: Import tasks to list upgradable package Redhat
+  ansible.builtin.import_tasks: list_upgradable_redhat.yml
+  when: 
+    - ansible_facts.os_family == 'RedHat'
+    - list_upgradable | bool
+
+- name:  Import tasks to list upgradable package Solaris
+  ansible.builtin.import_tasks: list_upgradable_solaris.yml
+  when: 
+    - ansible_facts.os_family == 'Solaris'
+    - list_upgradable | bool
+
+- name:  Import tasks to list upgradable package Ubuntu
+  ansible.builtin.import_tasks: list_upgradable_ubuntu.yml
+  when: 
+    - ansible_facts.os_family == 'Debian'
+    - list_upgradable | bool
+
+# Listing Memory Display
+- name: Import tasks to check memory usage
+  ansible.builtin.import_tasks: memory_usage_solaris.yml
+  when: 
+    - display_memory_usage | bool
+    - ansible_facts.os_family == 'Solaris'
+
+- name: Import tasks to check memory usage
+  ansible.builtin.import_tasks: memory_usage_redhat.yml
+  when: 
+    - display_memory_usage | bool
+    - ansible_facts.os_family != 'Solaris'
+
+# Listing User
+- name: Import tasks to list user role
+  ansible.builtin.import_tasks: list_user.yml
+  when: 
+    - list_user | bool
+
+# Listing Sudo User
+- name: Import tasks to Checks Available for Sudo Users
+  ansible.builtin.import_tasks: sudo_users.yml
+  when: 
+    - list_sudo_user | bool
+
+# Listing Disk Usage
+- name: Import tasks to disk usage
+  ansible.builtin.import_tasks: display_disk_usage.yml
+  when: 
+    - display_disk_usage | bool
+
+# Listing list user home dir
+- name: Import tasks to list user home dir solaris
+  ansible.builtin.import_tasks: user_home_dir_solaris.yml
+  when: 
+    - list_user_home | bool
+    - ansible_facts.os_family == 'Solaris'
+
+- name: Import tasks to list user home dir ubuntu and redhat
+  ansible.builtin.import_tasks: user_home_dir_redhat.yml
+  when: 
+    - list_user_home | bool
+    - ansible_facts.os_family != 'Solaris'

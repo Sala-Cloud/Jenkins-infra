@@ -1,0 +1,65 @@
+---
+- name: Install NTP package | It will Ignore if No Internet
+  package:
+    name: ntp
+    state: present
+  ignore_errors: true
+- name: Start NTP service | It will Ignore if No Internet
+  service:
+    name: ntpd
+    state: started
+    enabled: true
+  ignore_errors: true
+
+- name: Install NTP client | It will Ignore if No Internet
+  shell:
+        "sudo yum install ntp -y"
+  ignore_errors: true
+
+- name: Set timezone to Asia/Phnom_Penh
+  command: timedatectl set-timezone Asia/Phnom_Penh
+
+- name: Configure NTP rhel
+  ansible.builtin.template:
+    src: etc/ntp_rhel.j2
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: adding npt client rhel
+  ansible.builtin.template:
+    src: etc/sysconfig.j2
+    dest: /etc/sysconfig/ntpd
+    owner: root
+    group: root
+    mode: "0640"
+- name: ensure that NTP starts automatically at boot time | It will Ignore if No NTP service
+  command: systemctl enable ntpd
+  ignore_errors: true
+- name: start the NTP service | It will Ignore if No NTP service
+  command: systemctl start ntpd
+  ignore_errors: true
+- name: Reload Service ntp rhel 
+  command: systemctl daemon-reload 
+  ignore_errors: true
+
+- name: Set-ntp
+  command: timedatectl set-ntp true
+  ignore_errors: true
+- name: start the NTP service | It will Ignore if No NTP service
+  command: systemctl restart ntpd
+- name: start the NTP service | It will Ignore if No NTP service
+  command: systemctl start ntpd
+- name: syn ntp
+  command: ntpdate -u ntp.amkcambodia.com
+  ignore_errors: true
+- name: To Verify timedatectl does not show correct status
+  command: timedatectl | grep NTP
+  ignore_errors: true
+- name: To Verify timedatectl does not show correct status
+  command: ntpstat
+  ignore_errors: true
+- name: check status ntp
+  command: ntpq -p
+  ignore_errors: true

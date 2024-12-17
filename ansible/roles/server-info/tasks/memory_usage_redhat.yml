@@ -1,0 +1,29 @@
+---
+- name: Check Memory Usage
+  shell: 
+    "free -h"
+  register: check_memory 
+
+- name: create file check memory usage
+  copy:
+    content: |
+          ========== Check memory usage ( {{OS}} ) ==========
+          Server Name: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4['address'] }} 
+          OS: {{ ansible_distribution }}
+
+          {{ check_memory.stdout }}
+
+          ======================================================
+
+    dest: "./display_memory_usage.txt"
+
+- name: Store file into /tmp/display_memory_usage/
+  ansible.builtin.fetch:
+    src: ./display_memory_usage.txt
+    dest: /tmp/display_memory_usage/
+
+- name: Remove display_memory_usage.txt file
+  ansible.builtin.file:
+    path: './display_memory_usage.txt'
+    state: absent

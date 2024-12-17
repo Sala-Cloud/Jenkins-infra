@@ -1,0 +1,31 @@
+---
+- name: list upgradable
+  shell:
+    "pkg list -u"
+  become: true
+  register: upgradable
+
+- name: create file get Upgradeable
+  copy:
+    content: |
+          ========== List Upgradeable ( {{OS}} ) ==========
+          Server Name: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4['address'] }} 
+          OS: {{ ansible_distribution }}
+
+          {{ upgradable.stdout }}
+          
+          ======================================================
+
+    dest: "./upgradable.txt"
+
+- name: Store file into /tmp/upgradable/
+  ansible.builtin.fetch:
+    src: ./upgradable.txt
+    dest: /tmp/upgradable/
+
+- name: Remove upgradeable.txt file
+  ansible.builtin.file:
+    path: './upgradable.txt'
+    state: absent
+    

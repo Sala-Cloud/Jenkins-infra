@@ -1,0 +1,66 @@
+---
+- name: Set powerstate of virtual machine to poweroff
+  delegate_to: localhost
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    name: "{{ vm_name }}"
+    state: poweredoff
+
+- name: Remove vm from inventory
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    folder: "/{{ datacenter_name }}/vm"
+    datastore: "{{ datastore }}"
+    name: "{{ vm_name }}"
+    state: absent
+  
+- name: checkout to main branch
+  command: "{{item}}"
+  args: 
+    chdir: "{{workspace}}/"
+  loop: 
+    - git checkout main
+    - git pull
+
+- name: remove vm server in to text
+  ansible.builtin.lineinfile:
+    path: "{{workspace}}/ansible/servers/vm/{{datastore}}/vm-servers.txt"
+    insertafter: EOF
+    line: "{{vm_name}}"
+    state: present
+    create: true
+
+- name: Remove the line containing '{{vm_name}}'
+  ansible.builtin.lineinfile:
+    path: "{{workspace}}/ansible/servers/vm/{{datastore}}/vm-servers.txt"
+    regexp: '^{{vm_name}}$'
+    state: absent
+
+- name: git status
+  command: git status
+  args:
+    chdir: "{{workspace}}/"
+  register: status
+
+- name: remove host to gitlab
+  command: git add {{item}}
+  args: 
+    chdir: "{{workspace}}/"
+  loop: 
+    - "{{workspace}}/ansible/servers/vm/{{datastore}}/vm-servers.txt"
+  when: '"modified" in status.stdout'
+
+- name: commit and push
+  command: "{{item}}"
+  args: 
+    chdir: "{{workspace}}/"
+  loop: 
+    - git commit -m "remove host server for vm "
+    - git push origin main
+  when: '"modified" in status.stdout'

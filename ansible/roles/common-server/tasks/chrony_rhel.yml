@@ -1,0 +1,37 @@
+---
+- name: Enable service Chronyd
+  command: systemctl enable chronyd
+  ignore_errors: true
+- name: Add ntp server DC
+  lineinfile: 
+    path: /etc/chrony.conf
+    regexp: '^(.*)pool 2.rhel.pool.ntp.org(.*)$' 
+    line: 'server ntp.amkcambodia.com iburst'
+    backrefs: yes
+- name: Add ntp server DR
+  ansible.builtin.lineinfile:
+    path: /etc/chrony.conf
+    insertafter: '^server ntp.amkcambodia.com'
+    line: 'server ntp1.amkcambodia.com iburst'
+- name: 
+  lineinfile: 
+    path: /etc/sysconfig/chronyd
+    regexp: '^(.*)OPTIONS=(.*)$' 
+    line: 'OPTIONS="-u chrony"'
+    backrefs: yes
+
+- name: Set timezone to Asia/Phnom_Penh
+  command: timedatectl set-timezone Asia/Phnom_Penh
+  ignore_errors: true
+  
+- name: restart service chronyd
+  command: systemctl restart chronyd
+- name: Set ntp to on
+  command: timedatectl set-ntp on
+  ignore_errors: true
+- name: sync status
+  command: chronyc sources
+  ignore_errors: true
+- name: sync status
+  command: chronyc sourcestats
+  ignore_errors: true

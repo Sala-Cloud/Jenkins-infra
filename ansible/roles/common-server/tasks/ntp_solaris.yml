@@ -1,0 +1,34 @@
+---
+- name: Create the ntp.conf file
+  command: cp /etc/inet/ntp.client /etc/inet/ntp.conf
+
+- name: Add NTP client on solaris
+  lineinfile:
+    dest: /etc/inet/ntp.conf
+    regexp: '# server'
+    line: |
+      server ntp.amkcambodia.com iburst
+      server ntp1.amkcambodia.com iburst
+- name: Enable ntp client on solaris
+  shell: 
+      "/usr/sbin/svcadm enable ntp"
+  ignore_errors: true
+- name: Restart service ntp client on soalris
+  shell:
+      "/usr/sbin/svcadm restart ntp"
+  ignore_errors: true
+- name: Start the services needed to run the DNS client on Solaris
+  shell: 
+      "/usr/sbin/svcadm enable network/dns/client"
+- name: Start the services needed to run the DNS client on Solaris
+  shell:
+      "/usr/sbin/svcadm enable system/name-service/switch"
+
+########### Below is the task to restart service SSH ######
+- name: restart service ssh on solaris
+  shell: 
+      "/usr/sbin/svcadm restart ssh"
+- name: restart service network/ssh
+  shell: 
+      "/usr/sbin/svcadm restart network/ssh"
+########### the task to restart service SSH ######

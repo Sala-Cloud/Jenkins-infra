@@ -1,0 +1,134 @@
+---
+- name: Set Retry Limit for Account Lockout
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)RETRIES=(.*)$' 
+    line: 'RETRIES=3'
+    backrefs: yes
+
+
+# ##############    LOCK_AFTER_RETRIES #######
+# ## This task configuer Manualy with command below
+# ## usermod -K lock_after_retries=yes username
+
+- name: Set Retry Limit for Account Lockout - LOCK_AFTER_RETRIES
+  lineinfile: 
+    path: /etc/security/policy.conf
+    regexp: '^(.*)LOCK_AFTER_RETRIES=(.*)$' 
+    line: 'LOCK_AFTER_RETRIES=YES'
+    backrefs: yes
+- name: beadm | Backup for restore point 
+  command: beadm create B4setPWpolicy
+  ignore_errors: true
+
+########### Password ######################
+- name: set permission for security/policy.conf from 0444 to 0644
+  command: chmod 0644 /etc/security/policy.conf
+  ignore_errors: true
+- name: Set Password Expiration Parameters on Active Accounts MAXWEEKS
+  lineinfile: 
+    path: /etc/default/passwd
+    regexp: '^(.*)MAXWEEKS=(.*)$' 
+    line: 'MAXWEEKS=13'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINWEEKS 
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINWEEKS=(.*)$' 
+    line: 'MINWEEKS=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts WARNWEEKS 
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)WARNWEEKS=(.*)$' 
+    line: 'WARNWEEKS=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts PASSLENGTH 
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)PASSLENGTH=(.*)$' 
+    line: 'PASSLENGTH=12'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts NAMECHECK=YES 
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)NAMECHECK=(.*)$' 
+    line: 'NAMECHECK=YES'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts HISTORY 
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)HISTORY=(.*)$' 
+    line: 'HISTORY=10'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINDIFF 
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINDIFF=(.*)$' 
+    line: 'MINDIFF=3'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINALPHA
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINALPHA=(.*)$' 
+    line: 'MINALPHA=2'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINNONALPHA
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINNONALPHA=(.*)$' 
+    line: '#MINNONALPHA=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINUPPER
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINUPPER=(.*)$' 
+    line: 'MINUPPER=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINLOWER
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINLOWER=(.*)$' 
+    line: 'MINLOWER=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MAXREPEATS
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MAXREPEATS=(.*)$' 
+    line: 'MAXREPEATS=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINSPECIAL
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINSPECIAL=(.*)$' 
+    line: 'MINSPECIAL=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts MINDIGIT
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)MINDIGIT=(.*)$' 
+    line: 'MINDIGIT=1'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts WHITESPACE
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)WHITESPACE=(.*)$' 
+    line: 'WHITESPACE=YES'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts DICTIONLIST
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)DICTIONLIST=(.*)$' 
+    line: 'DICTIONLIST=/usr/share/lib/dict/words'
+    backrefs: yes
+- name: Set Password Expiration Parameters on Active Accounts DICTIONDBDIR
+  lineinfile: 
+    path: /etc/default/passwd 
+    regexp: '^(.*)DICTIONDBDIR=(.*)$' 
+    line: 'DICTIONDBDIR=/var/passwd'
+    backrefs: yes
+########### Password ######################
+
+- name: Solaris set password never expire to user amkdevops
+  command: passwd -x -1 amkdevops
+  ignore_errors: true

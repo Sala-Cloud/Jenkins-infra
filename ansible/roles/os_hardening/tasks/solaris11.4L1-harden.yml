@@ -1,0 +1,564 @@
+---
+# - name: Use the Latest Package Updates (Need internet or repository file)
+#   command: pkg update
+#   ignore_errors: true
+
+- name: beadm create snapshot
+  command: beadm create 'Hardening'
+  ignore_errors: true
+
+- name: Disable RPC Encryption Key
+  shell: "{{ item }}"
+  loop:
+    - "/usr/sbin/svccfg -v -s svc:/network/smtp:sendmail setprop config/local_only=true"
+    - "/usr/sbin/svcadm refresh sendmail"
+    - "/usr/sbin/svcadm restart sendmail"
+
+- name: Disable Generic Security Services (GSS)
+  shell:
+    "/usr/sbin/svcadm disable svc:/network/rpc/gss"
+  
+- name: Disable Kerberos TGT Expiration Warning
+  shell:
+    "/usr/sbin/svcadm disable svc:/network/security/ktkt_warn"
+  ignore_errors: true
+
+
+- name:  Disable Response to Broadcast ICMPv4 Echo Request
+  shell:
+    "/usr/sbin/ipadm set-prop -p _respond_to_echo_broadcast=0 ip"
+  ignore_errors: true
+
+- name:  Disable Response to ICMP Broadcast Netmask Requests
+  shell:
+    "/usr/sbin/ipadm set-prop -p _respond_to_address_mask_broadcast=0 ip"
+  ignore_errors: true
+
+- name: Enable Strong TCP Sequence Number Generation - /etc/default/inetinit
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/svcadm disable svc:/system/filesystem/rmvolmgr"
+    - "/usr/sbin/svcadm disable svc:/network/rpc/smserver"
+  ignore_errors: true
+- name: Disable automount Service
+  command: svcadm disable svc:/system/filesystem/autofs
+  ignore_errors: true
+- name:  Enable Strong TCP Sequence Number Generation - /etc/default/inetinit
+  shell: "{{item}}"
+  loop:
+    - "cd /etc/default"
+    - "awk '/TCP_STRONG_ISS=/ { $1 = 'TCP_STRONG_ISS=2' }; { print }' inetinit > inetinit.CIS"
+    - "mv inetinit.CIS inetinit"
+    - "/usr/sbin/ipadm set-prop -p _strong_iss=2 tcp"
+    - "cd"
+  ignore_errors: true
+
+- name:  Disable Response to ICMP Broadcast Timestamp Requests
+  shell:
+    "/usr/sbin/ipadm set-prop -p _respond_to_timestamp_broadcast=0 ip"
+  ignore_errors: true
+
+- name:  Disable Source Packet Forwarding - ipv4
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/ipadm set-prop -p _forward_src_routed=0 ipv4"
+    - "/usr/sbin/ipadm set-prop -p _forward_src_routed=0 ipv6"
+  ignore_errors: true
+
+- name:  Disable Directed Broadcast Packet Forwarding
+  shell:
+    "/usr/sbin/ipadm set-prop -p _forward_directed_broadcasts=0 ip"
+  ignore_errors: true
+
+- name:  Enable Stack Protection - nxheap
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/sxadm delcust nxheap"
+    - "/usr/sbin/sxadm delcust nxstack"
+  ignore_errors: true
+
+- name:  Enable Stack Protection - set noexec_user_stack_log = 1
+  ansible.builtin.blockinfile:
+    path: /etc/system
+    block: |
+      set noexec_user_stack=1
+      set noexec_user_stack_log=1
+
+################# Core Dump ############
+- name: set permission for cores dump
+  command: chmod 700 /var/share/cores
+
+- name: Restrict Core Dumps to Protected Directory - /var/share/cores
+  command: coreadm -g /var/cores/core_%n_%f_%u_%g_%t_%p
+- name: Restrict Core Dumps to Protected Directory - kernel zone core file pattern
+  command: coreadm -g /var/share/cores/core_%n_%f_%u_%g_%t_%p
+  ignore_errors: true
+- name:  global core dumps enabled
+  command: coreadm -e global
+- name: global setid core dumps enabled
+  command: coreadm -e global-setid
+- name: global core dump logging enabled
+  command: coreadm -e log
+- name:  init core file pattern core
+  command: coreadm -i core
+- name: Enable diagnostic | ignore if file doesn't exist
+  command: coreadm -e diagnostic
+  ignore_errors: true
+- name: Enable diagnostic alert | ignore if file doesn't exist
+  command: coreadm -e diagnostic -e alert
+  ignore_errors: true
+
+- name: Enable retention policy | ignore if file doesn't exist
+  command: coreadm -d process -d proc-setid
+  ignore_errors: true
+
+# - name: Enable retention policy for 30days | ignore if file doesn't exist
+#   command: coreadm -r 30d
+#   ignore_errors: true
+# - name: Enable retention policy summary | ignore if file doesn't exist
+#   command: coreadm -r summary
+#   ignore_errors: true
+################# Core Dump ############
+
+- name:  Disable Response to ICMP Timestamp Requests
+  shell:
+    "/usr/sbin/ipadm set-prop -p _respond_to_timestamp=0 ip"
+  ignore_errors: true
+
+- name:  Disable Response to Multicast Echo Request - ipv4
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/ipadm set-prop -p _respond_to_echo_multicast=0 ipv4"
+    - "/usr/sbin/ipadm set-prop -p _respond_to_echo_multicast=0 ipv6"
+  ignore_errors: true
+
+- name:  Ignore ICMP Redirect Messages - ipv4
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/ipadm set-prop -p _ignore_redirect=1 ipv4"
+    - "/usr/sbin/ipadm set-prop -p _ignore_redirect=1 ipv6"
+  ignore_errors: true
+
+- name:  Set Strict Multihoming - ipv4
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/ipadm set-prop -p _strict_dst_multihoming=1 ipv4"
+    - "/usr/sbin/ipadm set-prop -p _strict_dst_multihoming=1 ipv6"
+  ignore_errors: true
+
+- name:  Disable ICMP Redirect Messages - ipv4 & ipv6
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/ipadm set-prop -p send_redirects=off ipv4"
+    - "/usr/sbin/ipadm set-prop -p send_redirects=off ipv6"
+
+- name:  Disable TCP Reverse IP Source Routing
+  shell:
+    "/usr/sbin/ipadm set-prop -p _rev_src_routes=0 tcp"
+
+- name:   Set Maximum Number of Half-open TCP Connections
+  shell:
+    "/usr/sbin/ipadm set-prop -p _conn_req_max_q0=4096 tcp"
+
+- name:  Set Maximum Number of Incoming Connections
+  shell: "/usr/sbin/ipadm set-prop -p _conn_req_max_q=1024 tcp"
+  ignore_errors: true
+
+- name: Create CIS Audit Class
+  ansible.builtin.lineinfile:
+    path: /etc/security/audit_class
+    regexp: '^(.*)e.g: svcadm refresh(.*)$'
+    insertbefore: '^0x0000000100000000:ot:other'
+    line: '0x0100000000000000:cis:CIS Solaris Benchmark'
+
+
+- name: To read the changed mappings into the kernel 
+  shell:
+    "/usr/sbin/auditconfig -conf"
+
+############## After Apply impact User weblogic locked account ####################
+- name:  Configure Solaris Auditing - /var/share/audit/ files
+  shell: "{{item}}"
+  loop:
+    - "/usr/sbin/auditconfig -conf"
+    - "/usr/sbin/auditconfig -setflags lo,ad,ft,ex,cis"
+    - "/usr/sbin/auditconfig -setnaflags lo"
+    - "/usr/sbin/auditconfig -setpolicy cnt,argv,zonename"
+    - "/usr/sbin/auditconfig -setplugin audit_binfile active p_minfree=1"
+    - "/usr/sbin/audit -s"
+    - "/usr/sbin/rolemod -K audit_flags=lo,ad,ft,ex,cis:no root"
+  ignore_errors: true
+
+- name: Configure Solaris Auditing | Add-cron
+  ansible.builtin.blockinfile:
+    path: /var/spool/cron/crontabs/root
+    block: |
+      0 0 * * * /usr/sbin/audit -n
+
+- name: Set owner for audit
+  shell:
+    "chown root:root /var/share/audit"
+- name: Set permission for audit
+  shell: 
+    "chmod 750 /var/share/audit"
+
+- name: Set owner for audit
+  shell:
+    "chown root:root /var/audit"
+  ignore_errors: true
+- name: Set permission for audit
+  shell: 
+    "chmod 750 /var/audit"
+  ignore_errors: true
+
+- name: restart service cron
+  command: /usr/sbin/svcadm restart cron
+- name: refresh service cron
+  command: /usr/sbin/svcadm refresh cron
+########## If Enable problem run cron Warning - Invalid account: 'root' not allowed to execute cronjobs
+# - name: Disable  pam_unix_account.so.1 
+#   lineinfile: 
+#     path: /etc/pam.d/cron
+#     regexp: '^(.*)account required(.*)$' 
+#     line: 'account required       pam_unix_account.so.1'
+#     backrefs: yes
+#   ignore_errors: true
+########## If Enable problem run cron Warning - Invalid account: 'root' not allowed to execute cronjobs
+
+
+- name: restart network/ssh
+  shell:
+    "/usr/sbin/svcadm restart svc:/network/ssh"
+
+- name: restart service svc:/system/name-service/cache
+  shell:
+    "/usr/sbin/svcadm restart svc:/system/name-service/cache"
+
+- name: Disable "nobody" Access for RPC Encryption Key Storage Service
+  replace:
+    path: /etc/default/keyserv
+    regexp: '^(.*)ENABLE_NOBODY_KEYS=(.*)$'
+    replace: "ENABLE_NOBODY_KEYS=NO"
+  ignore_errors: true
+- name: backup file audit_event
+  command: cp /etc/security/audit_event /etc/security/audit_event.orig
+
+- name: Blocking Authentication Using Empty/Null Passwords for SSH
+  shell: "{{item}}"
+  loop:
+    - "awk '/^.PermitEmptyPasswords/ { $1 = 'PermitEmptyPasswords' ; $2 = 'no' } {print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS"
+    - "mv /etc/ssh/sshd_config.CIS /etc/ssh/sshd_config"
+    - "/usr/sbin/svcadm restart svc:/network/ssh"
+- name: set permission sshd
+  command: chmod 0644 /etc/ssh/sshd_config
+
+- name: Set Default umask for users
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)UMASK=(.*)$' 
+    line: 'UMASK=027'
+    backrefs: yes
+
+- name: Set Delay between Failed Login Attempts to 4
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)SLEEPTIME(.*)$' 
+    line: 'SLEEPTIME=4'
+    backrefs: yes
+- name: Set DISABLETIME
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)DISABLETIME=(.*)$' 
+    line: 'DISABLETIME=900'
+    backrefs: yes
+# the action below configure manually
+## usermod -K lock_after_retries=yes username
+
+- name: Set Retry Limit for Account Lockout
+  lineinfile: 
+    path: /etc/default/login 
+    regexp: '^(.*)RETRIES=(.*)$' 
+    line: 'RETRIES=5'
+    backrefs: yes
+
+- name: Disable Host-based Authentication for Login-based Services rsh & rlogin
+  ansible.builtin.blockinfile:
+    path: /etc/pam.conf
+    block: |
+      rsh auth sufficient pam_rhosts_auth.so.1
+      rlogin auth sufficient pam_rhosts_auth.so.1
+    insertafter: EOF
+
+##############    LOCK_AFTER_RETRIES #######
+## This task configuer Manualy with command below
+## usermod -K lock_after_retries=yes username
+
+- name: Set Retry Limit for Account Lockout - LOCK_AFTER_RETRIES
+  lineinfile: 
+    path: /etc/security/policy.conf
+    regexp: '^(.*)LOCK_AFTER_RETRIES=(.*)$' 
+    line: 'LOCK_AFTER_RETRIES=YES'
+    backrefs: yes
+
+########### Password ######################
+
+- name: set permission for security/policy.conf from 0444 to 0644
+  command: chmod 0644 /etc/security/policy.conf
+  ignore_errors: true
+
+- name: Insert tasks to solaris Policy
+  ansible.builtin.template:
+    src: etc/default/solaris/passwd.j2
+    dest: /etc/default/passwd
+    owner: root
+    group: root
+    mode: "0640"
+
+# - name: Set Password Expiration Parameters on Active Accounts MAXWEEKS
+#   lineinfile: 
+#     path: /etc/default/passwd
+#     regexp: '^(.*)MAXWEEKS=(.*)$' 
+#     line: 'MAXWEEKS=13'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINWEEKS 
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINWEEKS=(.*)$' 
+#     line: 'MINWEEKS=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts WARNWEEKS 
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)WARNWEEKS=(.*)$' 
+#     line: 'WARNWEEKS=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts PASSLENGTH 
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)PASSLENGTH=(.*)$' 
+#     line: 'PASSLENGTH=12'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts NAMECHECK=YES 
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)NAMECHECK=(.*)$' 
+#     line: 'NAMECHECK=YES'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts HISTORY 
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)HISTORY=(.*)$' 
+#     line: 'HISTORY=10'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINDIFF 
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINDIFF=(.*)$' 
+#     line: 'MINDIFF=3'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINALPHA
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINALPHA=(.*)$' 
+#     line: 'MINALPHA=2'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINNONALPHA
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINNONALPHA=(.*)$' 
+#     line: '#MINNONALPHA=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINUPPER
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINUPPER=(.*)$' 
+#     line: 'MINUPPER=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINLOWER
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINLOWER=(.*)$' 
+#     line: 'MINLOWER=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MAXREPEATS
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MAXREPEATS=(.*)$' 
+#     line: 'MAXREPEATS=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINSPECIAL
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINSPECIAL=(.*)$' 
+#     line: 'MINSPECIAL=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts MINDIGIT
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)MINDIGIT=(.*)$' 
+#     line: 'MINDIGIT=1'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts WHITESPACE
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)WHITESPACE=(.*)$' 
+#     line: 'WHITESPACE=YES'
+#     backrefs: yes
+## If apply setting below It will difficult  to change pw
+# - name: Set Password Expiration Parameters on Active Accounts DICTIONLIST
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)DICTIONLIST=(.*)$' 
+#     line: 'DICTIONLIST=/usr/share/lib/dict/words'
+#     backrefs: yes
+# - name: Set Password Expiration Parameters on Active Accounts DICTIONDBDIR
+#   lineinfile: 
+#     path: /etc/default/passwd 
+#     regexp: '^(.*)DICTIONDBDIR=(.*)$' 
+#     line: 'DICTIONDBDIR=/var/passwd'
+#     backrefs: yes
+########### Password ######################
+
+- name: Enable a Warning Banner for the FTP service
+  shell: "{{ item }}"
+  loop:
+    - "echo 'DisplayConnect /etc/issue' >> /etc/proftpd.conf"
+    - "/usr/sbin/svcadm restart ftp"
+  ignore_errors: true
+
+- name: backup original file motd
+  command: cp /etc/motd /etc/motd.orig
+
+- name: Create Warnings for Standard Login Services - motd 
+  lineinfile: 
+    path: /etc/motd
+    line: Authorized users only. All activity may be monitored and reported to AMK's security teams.
+    backrefs: yes
+  ignore_errors: true
+- name: Create Warnings for Standard Login Services
+  copy:
+    content: "Authorized users only. All activity may be monitored and reported to AMK's security teams."
+    dest: /etc/issue
+  become: true
+- name: set owner to issue
+  command: chown root:root /etc/issue
+- name: set permission to issue
+  command: chmod 644 /etc/issue
+
+
+- name: Enable a Warning Banner for the SSH Service
+  shell: "{{item}}"
+  loop: 
+    - "awk '/^#Banner/ { $1 = 'Banner' } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS"
+    - "mv /etc/ssh/sshd_config.CIS /etc/ssh/sshd_config"
+    - "/usr/sbin/svcadm restart svc:/network/ssh"
+  ignore_errors: true
+
+- name: Check that the Banner Setting for telnet is Null
+  ansible.builtin.lineinfile:
+    path: /etc/default/telnetd
+    insertafter: EOF
+    line: 'BANNER='
+    state: present
+- name: backup Screen Lock for GNOME Users lock
+  command: cp /usr/share/X11/app-defaults/XScreenSaver /usr/share/X11/app-defaults/XScreenSaver.orig
+  ignore_errors: true
+- name: backup firle keyserv
+  command: cp /etc/default/keyserv /etc/default/keyserv.orig
+  ignore_errors: true
+- name: Disable 'nobody' Access for RPC Encryption Key Storage Service
+  ansible.builtin.template:
+    src: etc/default/keyserv.j2
+    dest: /etc/default/keyserv
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+- name: backup file 
+  command: cp /etc/profile /etc/profile.orig
+  ignore_errors: true
+- name: Set "mesg n" as Default for All Users - profile
+  ansible.builtin.blockinfile:
+    path: /etc/profile
+    block: | 
+      mesg n
+  ignore_errors: true
+- name: backup file Init Default
+  command: cp /etc/gdm/Init/Default /etc/gdm/Init/Default.orig
+  ignore_errors: true
+- name: Enable a Warning Banner for the GNOME Service
+  ansible.builtin.template:
+    src: etc/gdm/init/default.j2
+    dest: /etc/gdm/Init/Default
+    owner: root
+    group: root
+    mode: "0640"
+  ignore_errors: true
+- name: Set EEPROM Security Mode and Log Failed Access (SPARC) - security-mode
+  shell:
+    "eeprom security-mode=command # eeprom security-#badlogins=0"
+  ignore_errors: true
+
+
+########### Restrict at/cron to Authorized Users ###########
+## As confirmed with Security testm and System Ownwer This task not do
+
+# - name: Remove cron.deny | It will ignore if file doesn't exist
+#   command: rm /etc/cron.deny
+#   ignore_errors: true
+# - name: Remove at.deny | It will ignore if file doesn't exist
+#   command: rm /etc/at.deny
+#   ignore_errors: true
+# - name: create a new file cron.allow
+#   command: touch /etc/cron.allow
+#   ignore_errors: true
+# - name: create a new file at.allow
+#   command: touch /etc/at.allow
+
+# - name: set root to cron.allow
+#   shell: echo root > /etc/cron.allow
+#   ignore_errors: true
+# - name: copy null to at.allow
+#   command: cp /dev/null at.allow
+# - name: set permission to cron.allow
+#   command: chmod 400 /etc/cron.allow
+#   ignore_errors: true
+# - name: set permission to at.allow 
+#   command: chmod 400 /etc/at.allow 
+#   ignore_errors: true
+# - name: Set owner to cron.allow
+#   command: chown root:root /etc/cron.allow
+#   ignore_errors: true
+# - name: Set owner to at.allow
+#   command: chown root:root /etc/at.allow
+#   ignore_errors: true
+
+# - name: create a new file cron.d/at.allow
+#   command: touch /etc/cron.d/at.allow
+#   ignore_errors: true 
+# - name: set permission to /cron.d/at.allow 
+#   command: chmod 400 /etc/cron.d/at.allow 
+#   ignore_errors: true
+# - name: set root to at.allow
+#   shell: echo root > /etc/cron.d/at.allow
+#   ignore_errors: true
+# - name: Set owner to cron.d/at.allow
+#   command: chown root:root /etc/cron.d/at.allow
+#   ignore_errors: true
+
+# - name: Find SUID/SGID System Executables
+#   command: elfsign verify -e /usr/bin/su
+########### Restrict at/cron to Authorized Users ###########
+- name: Disable Rhost-based Authentication for SSH
+  shell:
+      "/usr/sbin/svcadm restart svc:/network/ssh"
+##########################  #######If allow it take for running##############
+# - name:  Verify System File Permissions | It will ignore if No Internet
+#   command: pkg fix
+#   ignore_errors: true
+########################## Disable for testing #####################
+- name: Solaris set password never expire to user amkdevops
+  command: passwd -x -1 amkdevops
+  ignore_errors: true
+
+ # ######################## Enf Task ##################################

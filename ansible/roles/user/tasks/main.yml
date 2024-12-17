@@ -1,0 +1,240 @@
+---
+# tasks file for ansible/roles/user
+- name: Check group exists
+  ansible.builtin.group:
+    name: "SuperAdmin"
+    state: present
+  check_mode: true
+  register: group_superadmin_result
+- name: Create group
+  group:
+    name: "SuperAdmin"
+    state: present
+  when: true in group_superadmin_result.values()
+
+- name: Validate the SuperAdmin
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%SuperAdmin ALL=(ALL) ALL'
+    line: '%SuperAdmin ALL=(ALL) ALL'
+  become: true
+
+##### User Operation 
+- name: Check group exists
+  ansible.builtin.group:
+    name: "UserOperation"
+    state: present
+  check_mode: true
+  register: group_useroperation_result
+- name: Create group
+  group:
+    name: "UserOperation"
+    state: present
+  when: true in group_useroperation_result.values()
+
+- name: Validate the UserOperation
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%UserOperation ALL=(ALL) ALL'
+    line: '%UserOperation ALL=(ALL:ALL) ALL, !/bin/bash'
+  become: true
+
+##### User Operation 
+##### Normal User
+- name: Check group exists
+  ansible.builtin.group:
+    name: "NormalUser"
+    state: present
+  check_mode: true
+  register: group_normaluser_result
+- name: Create group
+  group:
+    name: "NormalUser"
+    state: present
+  when: true in group_normaluser_result.values()
+
+- name: Validate the NormalUser
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%NormalUser ALL=(ALL)'
+    line: '%NormalUser ALL=(ALL) /bin/ls, /bin/cd'
+  become: true
+##### Normal User
+
+# - name: Validate the UserOperation
+#   ansible.builtin.lineinfile:
+#     path: /etc/sudoers
+#     state: present
+#     regexp: '^%UserOperation'
+#     line: '%UserOperation ALL=(ALL:ALL) ALL, !/bin/bash'
+#   become: true
+
+# - name: Validate the NormalUser
+#   ansible.builtin.lineinfile:
+#     path: /etc/sudoers
+#     state: present
+#     regexp: '^%NormalUser'
+#     line: '%NormalUser ALL=(ALL) /bin/ls, /bin/cd'
+#   become: true
+
+- name: Check group exists
+  ansible.builtin.group:
+    name: "amkdevops"
+    state: present
+  check_mode: true
+  register: group_result
+- name: Create group amkdevops
+  group:
+    name: amkdevops
+    state: present
+  when: true in group_result.values()
+- name: Create user amkdevops
+  user:
+    name: amkdevops
+    groups: amkdevops
+    append: yes
+    shell: /bin/bash
+    state: present
+  register: user_data
+
+- name: Add user amkdevops to sudoer
+  copy:
+    content: "amkdevops ALL=(ALL) NOPASSWD:ALL"
+    dest: /etc/sudoers.d/amkdevops
+  become: true
+
+- name: Set authorized keys on amkdevops
+  authorized_key:
+    user: amkdevops
+    key: "{{ lookup('file', 'authorized_keys/amkdevops.keys') }}"
+    exclusive: yes
+    manage_dir: yes
+    state: present
+
+- name: Set SSH config (disable host key verification)
+  copy:
+    dest: "{{ user_data.home }}/.ssh/config"
+    backup: no
+    owner: amkdevops
+    group: amkdevops
+    mode: 0600
+    content: |
+      StrictHostKeyChecking no
+      UserKnownHostsFile /dev/null
+################# Create User sa-savi #######################
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "sa-savi"
+  check_mode: true
+  register: user_result
+- name: Create user sa-savi
+  user:
+    name: sa-savi
+    password: "{{ 'MyP@word2424' | password_hash('sha512') }}"
+    groups: UserOperation
+    append: yes
+    state: present
+  when: true in user_result.values()
+################# End Create User sa-savi #######################
+#################  Create User sa-mony #######################
+
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "sa-mony"
+  check_mode: true
+  register: user_result
+- name: Create user sa-mony
+  user:
+    name: sa-mony
+    password: "{{ 'MyPw@amk2024' | password_hash('sha512') }}"
+    groups: UserOperation
+    append: yes
+    state: present
+  when: true in user_result.values()
+################# End Create User sa-mony #######################
+#################  Create User sa-phirak #######################
+
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "sa-phirak"
+  check_mode: true
+  register: user_result
+- name: Create user sa-mony
+  user:
+    name: sa-phirak
+    password: "{{ 'MyPw@amk2024' | password_hash('sha512') }}"
+    groups: UserOperation
+    append: yes
+    state: present
+  when: true in user_result.values()
+################# End Create User sa-phirak #######################
+
+#################  Create User sa-vicheka #######################
+
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "sa-vicheka"
+  check_mode: true
+  register: user_result
+- name: Create user sa-vicheka
+  user:
+    name: sa-vicheka
+    password: "{{ 'MyPw@amk2024' | password_hash('sha512') }}"
+    groups: SuperAdmin
+    append: yes
+    state: present
+  when: true in user_result.values()
+################# End Create User sa-vicheka #######################
+#################  Create User sa-kerithea #######################
+
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "sa-kerithea"
+  check_mode: true
+  register: user_result
+- name: Create user sa-kerithea
+  user:
+    name: sa-kerithea
+    password: "{{ 'MyPw@amk2024' | password_hash('sha512') }}"
+    groups: SuperAdmin
+    append: yes
+    state: present
+  when: true in user_result.values()
+################# End Create User sa-kerithea #######################
+#################  Create User sa-phanith #######################
+
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "sa-phanith"
+  check_mode: true
+  register: user_result
+- name: Create user sa-phanith
+  user:
+    name: sa-phanith
+    password: "{{ 'MyPw@amk2024' | password_hash('sha512') }}"
+    groups: SuperAdmin
+    append: yes
+    state: present
+  when: true in user_result.values()
+################# End Create User sa-phanith #######################
+
+################# Application Owner Below #######################
+# ################# Create User sa-roby  #######################
+
+# - name: Check if users exist
+#   ansible.builtin.user:
+#     name: "sa-roby"
+#   check_mode: true
+#   register: user_result
+# - name: Create user sa-roby
+#   user:
+#     name: sa-roby
+#     password: "{{ 'P@amk2024' | password_hash('sha512') }}"
+#     groups: UserOperation
+#     append: yes
+#     state: present
+#   when: true in user_result.values()
+# ################# End Create User sa-roby #######################

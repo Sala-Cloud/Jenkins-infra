@@ -1,0 +1,13 @@
+---
+# tasks file for ansible/roles/nginx
+- name: install nginx
+  package: 
+    name: nginx 
+    state: present
+  when: ansible_os_family != 'Solaris'
+
+# - name: install nginx solaris
+#   package: 
+#     name: nginx 
+#     state: present
+#   when: ansible_os_family == 'Solaris'

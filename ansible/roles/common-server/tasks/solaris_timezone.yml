@@ -1,0 +1,25 @@
+---
+############## Option 1 ###############
+- name: Set timezone using the 'command' module on solaris
+  become: yes
+  command: ln -sf /usr/share/lib/zoneinfo/{{ timezone }} /etc/localtime
+  vars:
+    timezone: Asia/Phnom_Penh 
+- name: refresh timezone
+  shell:
+    "/usr/sbin/svcadm refresh timezone"
+############## Option 1 ###############
+
+
+############## Option 2 ###############
+# - name:  Set timezone on solaris
+#   shell: "{{item}}"
+#   loop:
+#     - "/usr/sbin/svccfg -s timezone:default"
+#     - "setprop timezone/localtime = Asia/Phnom_Penh"
+#     - "end"
+#   ignore_errors: true
+# - name: refresh timezone
+#   shell:
+#     "/usr/sbin/svcadm refresh timezone"
+############## Option 2 ###############

@@ -1,0 +1,13 @@
+---
+- name: Uninstall Package on Rhel
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ package_name.split(',') }}"
+
+- name: Remove dependencies that are no longer required
+  yum:
+    autoremove: yes
+# Example Nginx,Docker
+    

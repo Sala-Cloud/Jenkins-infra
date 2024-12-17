@@ -1,0 +1,71 @@
+- name: Check group exists
+  ansible.builtin.group:
+    name: "{{ group }}"
+    state: present
+  check_mode: true
+  register: group_result
+- name: Create group
+  group:
+    name: "{{ group }}"
+    state: present
+  when: true in group_result.values()
+
+- name: Validate the SuperAdmin
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%SuperAdmin ALL=(ALL) ALL'
+    line: '%{{ group }} ALL=(ALL) ALL'
+  become: true
+  when: group == 'SuperAdmin'
+- name: Validate the UserOperation
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%UserOperation'
+    line: '%{{ group }} ALL=(ALL:ALL) ALL, !/bin/bash'
+  become: true
+  when: group == 'UserOperation'
+
+- name: Validate the NormalUser
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%NormalUser'
+    line: '%{{ group }} ALL=(ALL) /bin/ls, /bin/cd'
+  become: true
+  when: group == 'NormalUser'
+
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "{{ user }}"
+  check_mode: true
+  register: users_result
+- debug: 
+    msg: "{{ users_result }}"
+- name: Create user {{ user }}
+  ansible.builtin.user:
+    name: "{{ user }}"
+    password: "{{ password | password_hash('sha512') }}"
+    shell: /bin/bash
+    groups: "{{ group }}"
+    state: present
+  when: true in users_result.values()
+
+#Remove code below after User sa-phanith added to sudo
+# - name: Add user sa-phanith to sudoer
+#   copy:
+#     content: "sa-phanith ALL=(ALL) ALL"
+#     dest: /etc/sudoers.d/sa_phanith
+#     # validate: "visudo -cf %s"
+#   become: true
+
+################## SREU test #######################
+#Remove code below after User sa-phanith added to sudo
+# - name: Add Group Permission
+#   copy:
+#     content: "{{ user }} ALL=(ALL) ALL"
+#     dest: /etc/sudoers.d/normal_user
+#     # validate: "visudo -cf %s"
+#   become: true
+#####################################################

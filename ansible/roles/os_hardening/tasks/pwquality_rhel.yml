@@ -1,0 +1,10 @@
+---
+- name: Ensure password creation requirements are configured
+  ansible.builtin.template:
+    src: etc/security/pwquality_rhel.j2
+    dest: /etc/security/pwquality.conf
+    owner: root
+    group: root
+    mode: "0640"
+
+

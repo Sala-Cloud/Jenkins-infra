@@ -1,0 +1,35 @@
+---
+- name: Red Hat set password never expire to user amkdevops
+  command: passwd -x -1 amkdevops
+  ignore_errors: true
+- name: Ensure default user shell timeout is 900 seconds or less
+  ansible.builtin.blockinfile:
+    path: /etc/profile.d/less.sh
+    block: |
+      readonly TMOUT=900 ; export TMOUT
+  ignore_errors: true
+- name: disable restrict default nomodify notrap nopeer noquery
+  lineinfile: 
+    path: /etc/ntp.conf 
+    regexp: '^(.*)restrict default nomodify(.*)$' 
+    line: '#restrict default nomodify notrap nopeer noquery'
+    backrefs: yes
+  ignore_errors: true
+
+- name: Ensure ntp is configured - restrict -4 and -6
+  lineinfile: 
+    path: /etc/sysconfig/ntpd 
+    regexp: '^(.*)OPTIONS=(.*)$' 
+    line: OPTIONS='-u ntp:ntp'
+    backrefs: yes
+  ignore_errors: true
+- name: Reload the systemd daemon
+  command: systemctl daemon-reload
+  ignore_errors: true
+
+- name: Enable and start the ntp service
+  command: systemctl --now enable ntpd
+  ignore_errors: true
+
+
+  

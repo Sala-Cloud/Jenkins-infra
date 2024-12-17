@@ -1,0 +1,108 @@
+localhost ansible_connection=local
+[all:vars]
+# ansible_python_interpreter=/usr/bin/python2
+ansible_python_interpreter="/usr/bin/env python3"
+
+[user-operation]
+UAT-API-MG1-uat ansible_ssh_host=192.168.102.231 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+AMK-NBC-BAK01-uat ansible_ssh_host=192.168.102.243 ansible_ssh_user=amkdevops
+uat-pg-dbv14-uat ansible_ssh_host=192.168.100.181 ansible_ssh_user=amkdevops
+uat-mms-01-uat ansible_ssh_host=192.168.100.179 ansible_ssh_user=amkdevops
+cbs-mbk-app01-uat ansible_ssh_host=192.168.113.8 ansible_ssh_user=amkdevops
+cbs-dev-app01-uat ansible_ssh_host=192.168.113.6 ansible_ssh_user=amkdevops
+uat-bak-mb01-uat ansible_ssh_host=192.168.102.250 ansible_ssh_user=amkdevops
+UAT-UPI-SVCG01-uat ansible_ssh_host=192.168.104.211 ansible_ssh_user=amkdevops
+TEST-SV-U01-uat ansible_ssh_host=192.168.104.220 ansible_ssh_user=amkdevops
+node1-uat ansible_ssh_host=192.168.100.134 ansible_ssh_user=amkdevops
+node3-uat ansible_ssh_host=192.168.100.182 ansible_ssh_user=amkdevops
+node-uat ansible_ssh_host=192.168.100.135 ansible_ssh_user=amkdevops
+PRE-SVRB-APP01-uat ansible_ssh_host=192.168.104.228 ansible_ssh_user=amkdevops
+bkst-db01-uat ansible_ssh_host=192.168.115.5 ansible_ssh_user=amkdevops
+bkst-app01-uat ansible_ssh_host=192.168.115.4 ansible_ssh_user=amkdevops
+uat-api-cassanr01-uat ansible_ssh_host=192.168.104.202 ansible_ssh_user=amkdevops
+uat-api-cassanr02-uat ansible_ssh_host=192.168.104.212 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+uat-pg-ben01-uat ansible_ssh_host=192.168.103.155 ansible_ssh_user=amkdevops
+uat-pg-fen01-uat ansible_ssh_host=192.168.103.156 ansible_ssh_user=amkdevops
+UAT-BKST-DOC01-uat ansible_ssh_host=192.168.115.7 ansible_ssh_user=amkdevops
+UAT-weblogic-01-uat ansible_ssh_host=192.168.100.139 ansible_ssh_user=amkdevops
+uat-bizsol-db-uat ansible_ssh_host=192.168.100.137 ansible_ssh_user=amkdevops
+uat-elk-uat ansible_ssh_host=192.168.100.142 ansible_ssh_user=amkdevops
+satellite-uat-uat ansible_ssh_host=192.168.104.208 ansible_ssh_user=amkdevops
+mms-db-uat ansible_ssh_host=192.168.100.140 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-RHEL-01-uat ansible_ssh_host=192.168.100.141 ansible_ssh_user=amkdevops
+UAT-API-TAB01-uat ansible_ssh_host=192.168.103.132 ansible_ssh_user=amkdevops
+uat-ubun-01-uat ansible_ssh_host=192.168.100.141 ansible_ssh_user=amkdevops
+ubuntu-uat ansible_ssh_host=uat-ubun-01 ansible_ssh_user=amkdevops
+uat-solr-01-uat ansible_ssh_host=192.168.100.141 ansible_ssh_user=amkdevops
+DC-TM4-APP02-uat ansible_ssh_host=192.168.104.204 ansible_ssh_user=amkdevops
+uat-nfs-01-uat ansible_ssh_host=192.168.105.141 ansible_ssh_user=amkdevops
+UAT-CBS-CDB02-uat ansible_ssh_host=192.168.104.216 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-SVBO-U1-uat ansible_ssh_host=192.168.104.217 ansible_ssh_user=amkdevops
+UAT-SVBO-U1-uat ansible_ssh_host=192.168.104.219 ansible_ssh_user=amkdevops
+UAT-SVRB-01-uat ansible_ssh_host=192.168.104.209 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+CBS-MOC-APP02-uat ansible_ssh_host=192.168.117.13 ansible_ssh_user=amkdevops
+CBS-MOC-APP01-uat ansible_ssh_host=192.168.117.12 ansible_ssh_user=amkdevops
+uat-api-casu02-uat ansible_ssh_host=192.168.104.201 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-UPI-DB01-uat ansible_ssh_host=192.168.104.214 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+uat-apim-pg02-uat ansible_ssh_host=192.168.100.138 ansible_ssh_user=amkdevops
+uat-bak-u01-uat ansible_ssh_host=192.168.102.239 ansible_ssh_user=amkdevops
+uat-api-ed1-uat ansible_ssh_host=192.168.102.233 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-SWT-SRDB1-uat ansible_ssh_host=192.168.104.198 ansible_ssh_user=amkdevops
+uat-rhel7-01-uat ansible_ssh_host=192.168.115.13 ansible_ssh_user=amkdevops
+uat-solr-01-uat ansible_ssh_host=192.168.115.15 ansible_ssh_user=amkdevops
+uat-ubun18-01-uat ansible_ssh_host=192.168.115.14 ansible_ssh_user=amkdevops
+PG-TEC-APP01-uat ansible_ssh_host=192.168.112.15 ansible_ssh_user=amkdevops
+PG-DEV-APP01-uat ansible_ssh_host=192.168.112.16 ansible_ssh_user=amkdevops
+PG-DIG-APP01-uat ansible_ssh_host=192.168.112.17 ansible_ssh_user=amkdevops
+UAT-API-MG1a-uat ansible_ssh_host=192.168.100.147 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-API-MG1b-uat ansible_ssh_host=192.168.104.199 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-API-MG1c-uat ansible_ssh_host=192.168.105.144 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+UAT-UPI-PRE01-uat ansible_ssh_host=192.168.104.229 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python"
+KAF-ZOOK01-uat ansible_ssh_host=192.168.115.20 ansible_ssh_user=amkdevops
+KAF-ZOOK02-uat ansible_ssh_host=192.168.115.21 ansible_ssh_user=amkdevops
+kaf-bk01-uat ansible_ssh_host=192.168.115.22 ansible_ssh_user=amkdevops
+kaf-bk02-uat ansible_ssh_host=192.168.115.23 ansible_ssh_user=amkdevops
+bkst-app02-uat ansible_ssh_host=192.168.115.6 ansible_ssh_user=amkdevops
+UAT-API-MG1d-uat ansible_ssh_host=192.168.100.183 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+uat-api-nginx1-uat ansible_ssh_host=10.10.7.43 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python2"
+dc-geo-01-uat ansible_ssh_host=192.168.103.123 ansible_ssh_user=amkdevops
+TEC-SWT-APP01-uat ansible_ssh_host=192.168.114.5 ansible_ssh_user=amkdevops
+UAT-UPI-TEST01-uat ansible_ssh_host=192.168.104.215 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python"
+UAT-OBIEE-01-uat ansible_ssh_host=192.168.102.242 ansible_ssh_user=amkdevops
+UAT-ISR-DB01-uat ansible_ssh_host=192.168.102.251 ansible_ssh_user=amkdevops
+uat-api-hda01-uat ansible_ssh_host=192.168.112.4 ansible_ssh_user=amkdevops
+uat-api-hdd01-uat ansible_ssh_host=192.168.112.5 ansible_ssh_user=amkdevops
+API-DEV-APP01-uat ansible_ssh_host=92.168.102.244 ansible_ssh_user=amkdevops
+r23-k8s-mms01-uat ansible_ssh_host=192.168.115.24 ansible_ssh_user=amkdevops
+r23-k8s-mms02-uat ansible_ssh_host=192.168.152.10 ansible_ssh_user=amkdevops
+API-DEV-APP01-uat ansible_ssh_host=192.168.102.244 ansible_ssh_user=amkdevops
+uat-dst-app01-uat ansible_ssh_host=192.168.112.25 ansible_ssh_user=amkdevops
+uat-bak-db01-uat ansible_ssh_host=192.168.152.12 ansible_ssh_user=amkdevops
+uat-dpf-app01-uat ansible_ssh_host=192.168.113.4 ansible_ssh_user=amkdevops
+uat-dpf-db01-uat ansible_ssh_host=192.168.152.13 ansible_ssh_user=amkdevops
+uat-mms-db01-uat ansible_ssh_host=192.168.152.16 ansible_ssh_user=amkdevops
+CBS-MIG-MST01-uat ansible_ssh_host=192.168.117.29 ansible_ssh_user=amkdevops ansible_python_interpreter="/usr/bin/python"
+uat-api-cassanr03-uat ansible_ssh_host=192.168.152.8 ansible_ssh_user=amkdevops
+uat-dgf-app01-uat ansible_ssh_host=192.168.112.32 ansible_ssh_user=amkdevops
+uat-snq-01-uat ansible_ssh_host=192.168.100.184 ansible_ssh_user=amkdevops
+uat-dgf-db01-uat ansible_ssh_host=192.168.152.20 ansible_ssh_user=amkdevops
+uat-graf-01-uat ansible_ssh_host=192.168.112.33 ansible_ssh_user=amkdevops
+uat-rmq-01-uat ansible_ssh_host=192.168.112.34 ansible_ssh_user=amkdevops
+UAT-SWT-DB01-uat ansible_ssh_host=192.168.152.4 ansible_ssh_user=amkdevops
+TEC-SWT-FEA01-uat ansible_ssh_host=192.168.102.201 ansible_ssh_user=amkdevops
+R23-CBS-DEV01-uat ansible_ssh_host=192.168.113.5 ansible_ssh_user=amkdevops
+UAT-BAK-API01-uat ansible_ssh_host=192.168.112.48 ansible_ssh_user=amkdevops
+UAT-BAK-CORE01-uat ansible_ssh_host=192.168.112.49 ansible_ssh_user=amkdevops
+UAT-BAK-DB01-50-uat ansible_ssh_host=192.168.112.50 ansible_ssh_user=amkdevops
+UAT-NTF-01-uat ansible_ssh_host=192.168.112.52 ansible_ssh_user=amkdevops
+UAT-OBIEE-U01-uat ansible_ssh_host=192.168.112.51 ansible_ssh_user=amkdevops
+R23-T24-RECD01-uat ansible_ssh_host=192.168.117.34 ansible_ssh_user=amkdevops
+R23-T24-RECA01-uat ansible_ssh_host=192.168.117.33 ansible_ssh_user=amkdevops
+UAT-K8S-PG01-uat ansible_ssh_host=192.168.112.53 ansible_ssh_user=amkdevops
+UAT-K8S-PG02-uat ansible_ssh_host=192.168.112.54 ansible_ssh_user=amkdevops
+UAT-K8S-PGM1-uat ansible_ssh_host=192.168.112.55 ansible_ssh_user=amkdevops
+UAT-K8S-PGM2-uat ansible_ssh_host=192.168.112.56 ansible_ssh_user=amkdevops
+UAT-APIM-DB01-uat ansible_ssh_host=192.168.152.26 ansible_ssh_user=amkdevops
+UAT-APIM-DB02-uat ansible_ssh_host=192.168.152.27 ansible_ssh_user=amkdevops
+UAT-PCI-DSS01-uat ansible_ssh_host=192.168.115.10 ansible_ssh_user=amkdevops
+UAT-SV-APP02-uat ansible_ssh_host=192.168.114.4 ansible_ssh_user=amkdevops

@@ -1,0 +1,91 @@
+---
+# Update all package
+- name: Import tasks to configure patch RedHat
+  ansible.builtin.import_tasks: rhel_upgrade.yml
+  tags: patch
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - action == 'all_packages'
+
+- name: Import tasks to patch ubuntu
+  ansible.builtin.import_tasks: ubuntu_upgrade.yml
+  tags: patch
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - action == 'all_packages'
+
+- name: Import tasks to patch Solaris Sparc
+  ansible.builtin.import_tasks: solaris_upgrade.yml
+  tags: patch
+  when:
+    - ansible_facts.os_family == 'Solaris'
+    - action == 'all_packages'
+
+# Update Web server
+- name: Import tasks to web-server ubuntu
+  ansible.builtin.import_tasks: ubuntu_web_server.yml
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - web_server != '--- web-server ---'
+
+- name: Import tasks to web-server redhat
+  ansible.builtin.import_tasks: rhel_web_server.yml
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - web_server != '--- web-server ---'
+
+- name: Import tasks to web-server solaris
+  ansible.builtin.import_tasks: solaris_web_server.yml
+  when:
+    - ansible_facts.os_family == 'Solaris'
+    - web_server != '--- web-server ---'
+
+# Install with specific packages
+- name: Import tasks to install specific packages Debian
+  ansible.builtin.import_tasks: ubuntu_install_specific_packages.yml
+  when: 
+    - ansible_facts.os_family == 'Debian'
+    - action == 'Install/Update'
+
+- name: Import tasks to install specific packages RedHat
+  ansible.builtin.import_tasks: rhel_install_specific_packages.yml
+  when: 
+    - ansible_facts.os_family == 'RedHat'
+    - action == 'Install/Update'
+
+- name: Import tasks to install specific packages Solaris
+  ansible.builtin.import_tasks: solaris_install_specific_packages.yml
+  when: 
+    - ansible_facts.os_family == 'Solaris'
+    - action == 'Install/Update'
+
+# Uninstall Package
+- name: Uninstall Ubuntu Package
+  ansible.builtin.import_tasks: ubuntu_uninstall.yml
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - action == 'uninstall'
+
+- name: Uninstall Redhat Package
+  ansible.builtin.import_tasks: rhel_uninstall.yml
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - action == 'uninstall'
+
+- name: Uninstall Solaris Package
+  ansible.builtin.import_tasks: solaris_uninstall.yml
+  when:
+    - ansible_facts.os_family == 'Solaris'
+    - action == 'uninstall'
+
+- name: Upgrade OS version in ubuntu 18 to 20
+  ansible.builtin.import_tasks: ubuntu_update_os_20.yml
+  when: 
+    - os_version == "20"
+    - ansible_distribution_version == '18.04'
+
+- name: Upgrade OS version in ubuntu 20 to 22
+  ansible.builtin.import_tasks: ubuntu_update_os_22.yml
+  when: 
+    - os_version == "22"
+    - ansible_distribution_version == '20.04'

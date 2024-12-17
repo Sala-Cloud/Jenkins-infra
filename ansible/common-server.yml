@@ -1,0 +1,27 @@
+---
+- hosts: common-server
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+    - import_tasks: tasks/common.yml
+  roles:
+    # - common
+    
+    - user
+    - common-server 
+    - role: git
+      when: git | bool
+    - role: docker
+      when: docker | bool
+    - role: nginx
+      when: nginx | bool
+    - role: apache
+      when: apache | bool
+    - role: jboss
+      become: true
+      when: jboss | bool
+    - role: java
+      when: java | bool
+    - role: weblogic
+      when: weblogic | bool
+    

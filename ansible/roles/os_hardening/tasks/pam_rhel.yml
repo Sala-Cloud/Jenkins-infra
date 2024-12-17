@@ -1,0 +1,16 @@
+---
+- name: Edit password-auth
+  ansible.builtin.template:
+    src: etc/pam.d/redhat/password-auth.j2
+    dest: /etc/pam.d/password-auth
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: Edit system-auth
+  ansible.builtin.template:
+    src: etc/pam.d/redhat/system-auth.j2
+    dest: /etc/pam.d/system-auth
+    owner: root
+    group: root
+    mode: "0640"

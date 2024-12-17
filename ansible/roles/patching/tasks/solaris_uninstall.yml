@@ -1,0 +1,7 @@
+---
+- name: Uninstall package on Solaris
+  pkgutil:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ package_name.split(',') }}"

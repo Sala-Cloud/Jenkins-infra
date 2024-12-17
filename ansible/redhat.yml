@@ -1,0 +1,649 @@
+---
+- hosts: [redhat]
+  become: yes
+  tasks:
+#Number 1
+  - name: Ensure mounting of cramfs filesystems is disabled | create a new file cramfs.conf
+    file:
+      path: "/etc/modprobe.d/cramfs.conf"
+      state: touch
+
+  - name: Insert content to file cramfs.conf
+    ansible.builtin.blockinfile:
+      path: /etc/modprobe.d/cramfs.conf
+      block: |
+        install cramfs /bin/true
+  - name: unload cramfs
+    command: rmmod cramfs
+    ignore_errors: true
+
+#Number 2
+  - name: Ensure mounting of hfs filesystems is disabled | Creating Empty File hfs.conf
+    file:
+      path: "/etc/modprobe.d/hfs.conf"
+      state: touch
+
+  - name: Insert content to File hfs.conf
+    ansible.builtin.blockinfile:
+      path: /etc/modprobe.d/hfs.conf
+      block: |
+        install hfs /bin/true
+  - name: unload hfs
+    command: rmmod hfs
+    ignore_errors: true
+
+#Number 3
+  - name: Ensure mounting of hfsplus filesystems is disabled | Creating Empty File hfsplus.conf
+    file:
+      path: "/etc/modprobe.d/hfsplus.conf"
+      state: touch
+
+  - name: Insert content to File hfsplus.conf
+    ansible.builtin.blockinfile:
+      path: /etc/modprobe.d/hfsplus.conf
+      block: |
+        install hfsplus /bin/true
+  - name: unload hfsplus
+    command: rmmod hfsplus
+    ignore_errors: true
+
+#Number 4
+  - name: Ensure mounting of udf filesystems is disabled | Creating Empty File udf
+    file:
+      path: "/etc/modprobe.d/udf.conf"
+      state: touch
+
+  - name: Insert content to File udf
+    ansible.builtin.blockinfile:
+      path: /etc/modprobe.d/udf.conf
+      block: |
+        install udf /bin/true
+  - name: unload udf
+    command: rmmod udf
+    ignore_errors: true
+
+#Number 5
+  - name: Disable the rhnsd Daemon
+    command:  systemctl --now mask rhnsd
+    ignore_errors: true
+
+#Number 6 ((Not sure to keep or remove))
+#  - name: Ensure message of the day is configured properly
+#    command:  rm /etc/motd
+#    ignore_errors: true
+
+#Number 7
+  - name: Ensure local login warning banner is configured properly
+    command: echo "Authorized users only. All activity may be monitored and reported to AMK's security teams." > /etc/issue
+    ignore_errors: true
+
+#Number 8
+  - name: Ensure remote login warning banner is configured properly
+    command:  echo "Authorized users only. All activity may be monitored and reported to AMK's security teams." > /etc/issue.net
+    ignore_errors: true
+
+#Number 9
+  - name:  Ensure permissions on /etc/motd are configured
+    shell: "{{item}}"
+    loop:
+      - "chown root:root /etc/motd"
+      - "chmod u-x,go-wx /etc/motd"
+    ignore_errors: true
+
+#Number 10
+  - name:  Ensure permissions on /etc/issue are configured
+    shell: "{{item}}"
+    loop:
+      - "chown root:root /etc/issue"
+      - "chmod u-x,go-wx /etc/issue"
+    ignore_errors: true
+#Number 11
+  - name:  Ensure permissions on /etc/issue.net are configured
+    shell: "{{item}}"
+    loop:
+      - "chown root:root /etc/issue.net"
+      - "chmod u-x,go-wx /etc/issue.net"
+    ignore_errors: true
+
+#Number 12
+  - name: Ensure GNOME Display Manager is removed
+    command:  yum remove gdm
+    ignore_errors: true
+
+#Number 13 (Needed internet)
+  - name:  Ensure updates, patches, and additional security software are installed
+    shell:
+     "yum upgrade -y"
+    ignore_errors: true
+##################### Install NTP ###################################
+#Number 14 * About the NTP Pool need to check with team first
+#  - name: Ensure ntp is configured
+#    shell:
+#     "yum install ntp -y"
+#    ignore_errors: true
+
+#  - name: Ensure ntp is configured | Insert NTP Server Pools
+#    ansible.builtin.blockinfile:
+#      path: /etc/ntp.conf
+#     block: |
+#        server 0.centos.pool.ntp.org iburst
+#        server 1.centos.pool.ntp.org iburst
+#        server 2.centos.pool.ntp.org iburst
+#        server 3.centos.pool.ntp.org iburst
+#    ignore_errors: true
+
+#    - name: Restart NTP service
+#    command:  systemctl restart ntpd
+#    ignore_errors: true
+#
+#    - name: Enable NTP service
+#    command:  systemctl enable ntpd
+#    ignore_errors: true
+##################### End Install NTP ###################################
+
+#Number 15
+#this case not do
+  # - name: Ensure X11 Server components are not installed
+  #   command:  yum remove xorg-x11-server*
+  #   ignore_errors: true
+
+#Number 16
+  - name:  Ensure Avahi Server is not installed
+    shell: "{{item}}"
+    loop:
+      - "systemctl stop avahi-daemon.socket avahi-daemon.service"
+      - "yum remove avahi-autoipd avahi"
+    ignore_errors: true
+
+#Number 17
+  - name:  Ensure CUPS is not installed
+    command:  yum remove cups
+    ignore_errors: true
+
+#Number 18
+  - name: Ensure DHCP Server is not installed - isc-dhcp-server
+    command:  yum remove dhcp
+    ignore_errors: true
+
+#Number 19
+  - name:  Ensure LDAP server is not installed
+    command: yum remove openldap-servers
+    ignore_errors: true
+
+#Number 20
+  - name: Ensure DNS Server is not installed
+    command: yum remove bind
+    ignore_errors: true
+
+#Number 21 No need to remove FTP because we keep it for transfer files
+#  - name: Ensure FTP Server is not installed
+#    command:  yum remove vsftpd
+#    ignore_errors: true
+
+#Number 22 Ensure HTTP server is not installed | cannot remove because some server use webservice
+#  - name: Ensure FTP Server is not installed
+#    command:  yum remove httpd
+#    ignore_errors: true
+
+#Number  23
+  - name:  Ensure IMAP and POP3 server are not installed
+    command: yum remove dovecot
+    ignore_errors: true
+
+#Number 24
+  - name:  Ensure Samba is not installed
+    command:   yum remove samba
+    ignore_errors: true
+
+#Number 25
+  - name:   Ensure HTTP Proxy Server is not installed
+    command: yum remove squid
+    ignore_errors: true
+
+#Number 26
+#  - name:  Ensure mail transfer agent is configured for local-only mode (Un-command )
+#    lineinfile:
+#      dest: /etc/ssh/sshd_config
+#      regexp: '^#\s*inet_interfaces = localhost.*$'
+#      line: 'inet_interfaces = localhost'
+#    ignore_errors: true
+  - name: Ansible replace localhost to loopback-only
+    replace:
+      path: /etc/postfix/main.cf
+      regexp: 'inet_interfaces = localhost'
+      replace: "inet_interfaces = loopback-only "
+    ignore_errors: true
+
+  - name:   Ensure mail transfer agent is configured for local-only mode (Restart Service)
+    command:  systemctl restart postfix
+    ignore_errors: true
+
+# #Number 27
+#   - name:  Ensure rsync is not installed or the rsyncd service is masked
+#     shell:
+#      "yum remove rsync -y"
+#     ignore_errors: true
+
+#Number 28
+  - name:    Ensure NIS Server is not installed
+    command:   yum remove ypserv
+    ignore_errors: true
+
+ #Number 29
+  - name:  Ensure NIS Client is not installed
+    command:  yum remove ypbind
+    ignore_errors: true
+
+ #Number 30
+  - name:  Ensure rsh client is not installed
+    command: yum remove rsh
+    ignore_errors: true
+
+#Number 31
+  - name:  Ensure talk client is not installed
+    command:  yum remove talk
+    ignore_errors: true
+
+#Number 32
+  - name: Ensure LDAP client is not installed
+    command:  yum remove openldap-clients
+    ignore_errors: true
+
+#Number  33
+  - name: Disable IPv6
+    ansible.builtin.lineinfile:
+      path: /etc/default/grub
+      regexp: '^GRUB_CMDLINE_LINUX='
+      line: GRUB_CMDLINE_LINUX="ipv6.disable=1"
+    ignore_errors: true
+
+  - name: Disable IPv6 | update the grub2 configuration
+    command:  grub2-mkconfig –o /boot/grub2/grub.cfg
+    ignore_errors: true
+
+#Number 34
+  - name: Ensure suspicious packets are logged | Insert ipv4 to below all the line
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv4.conf.all.log_martians = 1
+        net.ipv4.conf.default.log_martians = 1
+    ignore_errors: true
+  - name:  Set the active kernel parameters
+    shell: "{{item}}"
+    loop:
+      - "sysctl -w net.ipv4.conf.all.log_martians=1"
+      - "sysctl -w net.ipv4.conf.default.log_martians=1"
+      - "sysctl -w net.ipv4.route.flush=1"
+    ignore_errors: true
+
+#Number 35
+  - name: Ensure broadcast ICMP requests are ignored
+    lineinfile:
+      path: /etc/sysctl.conf
+      line: net.ipv4.icmp_echo_ignore_broadcasts = 1
+      insertafter: EOF
+    ignore_errors: true
+
+  - name:  Set the active kernel parameters | Ensure broadcast ICMP requests are ignored
+    shell: "{{item}}"
+    loop:
+      - " sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1"
+      - "sysctl -w net.ipv4.route.flush=1"
+
+    ignore_errors: true
+
+#Number 36
+  - name: Ensure bogus ICMP responses are ignored
+    lineinfile:
+      path: /etc/sysctl.conf
+      line: net.ipv4.icmp_ignore_bogus_error_responses = 1
+      insertafter: EOF
+    ignore_errors: true
+
+  - name:  Set the active kernel parameters
+    shell: "{{item}}"
+    loop:
+      - "sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1 "
+      - "sysctl -w net.ipv4.route.flush=1"
+    ignore_errors: true
+
+#Number 37
+  - name: Ensure Reverse Path Filtering is enabled | Insert ipv4 to below all the line
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv4.conf.all.rp_filter = 1
+        net.ipv4.conf.default.rp_filter = 1
+    ignore_errors: true
+  - name:  Set the active kernel parameters
+    shell: "{{item}}"
+    loop:
+      - "sysctl -w net.ipv4.conf.all.rp_filter=1"
+      - "sysctl -w net.ipv4.conf.default.rp_filter=1"
+      - "sysctl -w net.ipv4.route.flush=1"
+    ignore_errors: true
+
+#Number k38
+  - name: Ensure Reverse Path Filtering is enabled | Insert ipv4 to below all the line
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv6.conf.all.accept_ra = 0
+        net.ipv6.conf.default.accept_ra = 0
+    ignore_errors: true
+  - name:  Set the active kernel parameters
+    shell: "{{item}}"
+    loop:
+      - "sysctl -w net.ipv6.conf.all.accept_ra=0"
+      - "sysctl -w net.ipv6.conf.default.accept_ra=0"
+      - "sysctl -w net.ipv6.route.flush=1"
+    ignore_errors: true
+
+#Number 39
+  - name: Ensure TCP SYN Cookies is enabled | Insert ipv4 to below all the line
+    lineinfile:
+      path: /etc/sysctl.conf
+      line: net.ipv4.tcp_syncookies = 1
+      insertafter: EOF
+    ignore_errors: true
+  - name:  Set the active kernel parameters
+    shell: "{{item}}"
+    loop:
+      - "sysctl -w net.ipv4.tcp_syncookies=1"
+      - "sysctl -w net.ipv4.route.flush=1"
+    ignore_errors: true
+
+#Number 40
+  - name: Ensure IPv6 router advertisements are not accepted | Insert ipv4 to below all the line
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv6.conf.all.accept_ra = 0
+        net.ipv6.conf.default.accept_ra = 0
+    ignore_errors: true
+  - name:  Set the active kernel parameters
+    shell: "{{item}}"
+    loop:
+      - "sysctl -w net.ipv6.conf.all.accept_ra=0"
+      - "sysctl -w net.ipv6.conf.default.accept_ra=0"
+      - "sysctl -w net.ipv6.route.flush=1"
+    ignore_errors: true
+
+#Number 41
+  - name: Ensure sudo is installed
+    command:  yum install sudo
+    ignore_errors: true
+
+#Number 42
+#  - name: Ensure permissions on /etc/ssh/sshd_config are configured
+#    shell: "{{item}}"
+#    loop:
+#      - "chown root:root /etc/ssh/sshd_config"
+#      - "chmod og-rwx /etc/ssh/sshd_config"
+#    ignore_errors: true
+
+#Number 43
+#  - name: Ensure permissions on SSH private host key files are configured
+#    shell: "{{item}}"
+#   loop:
+#        - "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chown root:root {} \;"
+#        - "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chmod u-x,go-rwx {} \;"
+#    ignore_errors: true
+
+#Number 44
+  - name:  Ensure SSH LogLevel is appropriate (Un-command )
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*LogLevel INFO.*$'
+      line: 'LogLevel INFO'
+    ignore_errors: true
+  - name: Ansible replace INFO to VERBOSE
+    replace:
+      path: /etc/postfix/main.cf
+      regexp: 'LogLevel INFO'
+      replace: "LogLevel VERBOSE"
+    ignore_errors: true
+#Restart SSH
+  - name: Restart SSH service
+    command:  sudo systemctl restart sshd
+    ignore_errors: true
+
+#Number 45
+  - name: Ensure SSH MaxAuthTries is set to 3 or less | | Uncomment MaxAuthTries 6
+    lineinfile:
+      dest: /ect/ssh/sshd_config
+      regexp: '^#\s*MaxAuthTries 6.*$'
+      line: 'MaxAuthTries 6'
+    ignore_errors: true
+  - name: Replace MaxAuthTries 6 to MaxAuthTries 3
+    replace:
+      path: /ect/ssh/sshd_config
+      regexp: 'MaxAuthTries 6'
+      replace: "MaxAuthTries 3"
+    ignore_errors: true
+#Restart SSH
+  - name: Restart SSH service
+    command:  sudo systemctl restart sshd
+    ignore_errors: true
+
+
+#Number 46
+  - name: Ensure SSH IgnoreRhosts is enabled | Uncomment
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*IgnoreRhosts yes.*$'
+      line: 'IgnoreRhosts yes'
+    ignore_errors: true
+
+#Number 47
+  - name: Ensure SSH HostbasedAuthentication is disabled | Uncomment
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*HostbasedAuthentication no.*$'
+      line: 'HostbasedAuthentication no'
+    ignore_errors: true
+
+#Number 48
+  - name:  Ensure SSH root login is disabled | Uncomment
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*PermitRootLogin yes.*$'
+      line: 'PermitRootLogin yes'
+    ignore_errors: true
+
+  - name: Ansible replace prohibit-password to no
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: 'PermitRootLogin yes'
+      replace: "PermitRootLogin no"
+    ignore_errors: true
+
+#Number 49
+
+  - name: Ensure SSH PermitEmptyPasswords is disabled | Uncomment
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*PermitEmptyPasswords no.*$'
+      line: 'PermitEmptyPasswords no'
+    ignore_errors: true
+
+#Restar sshd
+  - name: Restart SSH service
+    command: sudo systemctl restart sshd
+    ignore_errors: true
+
+#Number 50
+
+  - name: Ensure SSH PermitUserEnvironment is disabled | Uncomment
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*PermitUserEnvironment no.*$'
+      line: 'PermitUserEnvironment no'
+    ignore_errors: true
+
+#Number 51 Uncomment & Replace text
+  - name:  Ensure SSH Idle Timeout Interval is configured
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*ClientAliveInterval 0.*$'
+      line: 'ClientAliveInterval 3'
+    ignore_errors: true
+
+  - name:  Ensure SSH Idle Timeout Interval is configured
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*ClientAliveCountMax 3.*$'
+      line: 'ClientAliveCountMax 3'
+    ignore_errors: true
+
+  - name: Ansible replace ClientAliveInterval
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: 'ClientAliveInterval 0'
+      replace: "ClientAliveInterval 15"
+    ignore_errors: true
+
+#Number 52
+  - name:  Ensure SSH LoginGraceTime is set to one minute or less
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*LoginGraceTime 2m.*$'
+      line: 'LoginGraceTime 2m'
+    ignore_errors: true
+
+  - name: Ansible Replace LoginGraceTime 2m to LoginGraceTime 60
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: 'LoginGraceTime 2m'
+      replace: "LoginGraceTime 60"
+    ignore_errors: true
+
+#Number 53
+  - name:   Ensure SSH warning banner is configured | Uncomment Banner none
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*Banner none.*$'
+      line: 'Banner none'
+    ignore_errors: true
+
+  - name: Ansible replace Banner none
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: 'Banner none'
+      replace: "Banner /etc/issue.net"
+    ignore_errors: true
+
+#Number 54
+  - name:   Ensure SSH PAM is enabled | Uncomment UsePAM yes
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*UsePAM yes.*$'
+      line: 'UsePAM yes'
+    ignore_errors: true
+
+#Number 55
+  - name:  Ensure SSH MaxStartups is configured
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*MaxStartups 10:30:100.*$'
+      line: 'MaxStartups 10:30:100'
+    ignore_errors: true
+
+  - name: Replace SSH MaxStartups from 100 to 60
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: 'MaxStartups 10:30:100'
+      replace: "MaxStartups 10:30:60"
+    ignore_errors: true
+
+#Number 56
+  - name:  Ensure SSH MaxSessions is limited
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^#\s*MaxSessions 10.*$'
+      line: 'MaxSessions 10'
+    ignore_errors: true
+
+  - name: Ansible Replace SSH MaxStartups from 100 to 60
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: 'MaxSessions 10'
+      replace: "MaxSessions 5"
+    ignore_errors: true
+
+#Number 57
+  - name: Ensure password creation requirements are configured
+    lineinfile:
+      dest: /etc/security/pwquality.conf
+      regexp: '^#\s*minlen = 9.*$'
+      line: 'minlen = 9'
+    ignore_errors: true
+
+  - name: Ensure password creation requirements are configured
+    replace:
+      path: /etc/security/pwquality.conf
+      regexp: 'minlen = 9'
+      replace: "minlen = 12"
+    ignore_errors: true
+
+  - name: Ensure password creation requirements are configured
+    lineinfile:
+      dest: /etc/security/pwquality.conf
+      regexp: '^#\s* minclass = 0.*$'
+      line: ' minclass = 0'
+    ignore_errors: true
+
+  - name: Ensure password creation requirements are configured
+    replace:
+      path: /etc/security/pwquality.conf
+      regexp: ' minclass = 0'
+      replace: " minclass = 4"
+    ignore_errors: true
+    
+#Ensure password hashing algorithm is SHA-512
+#Ensure minimum days between password changes is configured
+#Ensure password expiration is 90 days
+#Ensure password expiration warning days is 14
+#Ensure default group for the root account is GID 0
+
+#Number 63
+#  - name: Ensure permissions on /etc/passwd are configured
+#    shell: "{{item}}"
+#    loop:
+#      - "chown root:root /etc/passwd"
+#      - "chmod u-x,go-wx /etc/passwd"
+#    ignore_errors: true
+
+#Number 64
+#  - name: Ensure permissions on /etc/group are configured
+#    shell: "{{item}}"
+#    loop:
+#      - "chown root:root /etc/group"
+#      - "chmod u-x,go-wx /etc/group"
+#    ignore_errors: true
+
+#Number 65
+#  - name: Ensure permissions on /etc/shadow are configured
+#    shell: "{{item}}"
+#    loop:
+#      - "chown root:root /etc/shadow"
+#      - "chmod 0000 /etc/shadow"
+#    ignore_errors: true
+
+#Number 66
+#  - name:  Ensure accounts in /etc/passwd use shadowed passwords
+#    shell:
+#     "sed -e 's/^([a-zA-Z0-9_]*):[^:]*:/1:x:/' -i /etc/passwd"
+#    ignore_errors: true
+
+#Number 67
+#   - name:  Ensure shadow group is empty
+#    shell:
+#     " sed -ri 's/(^shadow:[^:]*:[^:]*:)([^:]+$)/1/' /etc/group"
+#    ignore_errors: true
+
+  - name: Restart sshd
+    command: systemctl restart sshd
+    ignore_errors: true
+########################### End Task ####################################

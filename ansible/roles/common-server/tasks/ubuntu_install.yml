@@ -1,0 +1,6 @@
+---
+########## Use For Install Program Installation ########
+- name: to install the pam_pwquality module | Ignore if no Internet
+  shell:
+      "apt install libpam-pwquality -y"
+  ignore_errors: true

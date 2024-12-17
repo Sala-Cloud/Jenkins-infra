@@ -1,0 +1,191 @@
+---
+- name: create a new ec2 key pair, returns generated private key
+  ec2_key:
+    name: "{{ project }}"
+    region: "ap-southeast-1"
+    force: false
+    aws_secret_key: "{{ aws_secret_key }}"
+    aws_access_key: "{{ aws_access_key }}"
+  register: key_pair
+
+- name: Create a new file with permissions
+  file:
+    path: "{{workspace}}/{{ project }}.pem"
+    state: touch
+    mode: "400"
+
+- name: output keypair
+  copy:
+    content: "{{ key_pair.key.private_key}}"
+    dest: "{{workspace}}/{{ project }}.pem"
+    mode: '400'
+  ignore_errors: yes
+
+- name: change mode pem file 
+  command: "chmod 400 {{workspace}}/{{ project }}.pem"
+
+- name: Create the environment security group
+  ec2_group:
+    name: "{{ project }}-app-sg"
+    description: sg with rule descriptions
+    vpc_id: "{{ vpc_id }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    aws_access_key: "{{ aws_access_key }}"
+    region: "ap-southeast-1"
+    tags:
+      Name: "{{ project }}-app-sg"
+    rules:
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 192.168.108.0/24
+        rule_desc: jump host
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 10.10.16.0/24
+        rule_desc: VPN1
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 192.168.255.0/24
+        rule_desc: VPN2
+      - proto: tcp
+        ports:
+        - 80
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 80
+      - proto: tcp
+        ports:
+        - 443
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 443
+
+- name: Start an EC2 instance 
+  ec2_instance:
+    name: "{{ project }}"
+    key_name: "{{ project }}"
+    instance_type: "{{ instance_type }}"
+    security_group: "{{ project }}-app-sg"
+    aws_secret_key: "{{ aws_secret_key }}"
+    aws_access_key: "{{ aws_access_key }}"
+    vpc_subnet_id: "{{ subnet_id }}"
+    region: "ap-southeast-1"
+    wait: yes
+    network:
+      assign_public_ip: false
+    image_id: "{{ image_id }}"
+  register: EC2
+
+# - amazon.aws.ec2_vol:
+#     instance: "{{ EC2.instances.instance_id }}"
+#     volume_size: "{{ volume_size }}"
+#     volume_type: "{{ volume_type }}"
+#     device_name: /dev/xvdf
+
+- name: Send info to webex
+  uri:
+    url: 'https://webexapis.com/v1/messages'
+    method: POST
+    body:
+      files:
+        filename: "{{workspace}}/{{ project }}.pem"
+      roomId:
+        content: "{{Webex_RoomID}}"
+      html:
+        content: "<strong>IP</strong>: {{ EC2 | json_query('instances[*].private_ip_address') }} <br>"
+    body_format: form-multipart
+    headers:
+      Authorization: "{{Webex_Token}}"
+    follow_redirects: safe
+  register: result
+
+- name: checkout to main branch
+  command: "{{item}}"
+  args: 
+    chdir: "{{workspace}}/"
+  loop: 
+    - git checkout main
+    - git pull
+
+- set_fact: instance_ids="{{ item }}"
+  loop: "{{ EC2.instance_ids }}"
+
+- name: add ec2 host
+  ansible.builtin.lineinfile:
+    path: "{{workspace}}/ansible/aws/ec2-server.txt"
+    insertafter: EOF
+    line: "{{ project }},{{ instance_ids }}"
+    state: present
+
+- name: git status
+  command: git status
+  args:
+    chdir: "{{workspace}}/"
+  register: status
+
+- name: add new host to gitlab
+  command: git add {{item}}
+  args: 
+    chdir: "{{workspace}}/"
+  loop: 
+    - "{{workspace}}/ansible/aws/ec2-server.txt"
+  when: '"modified" in status.stdout'
+
+- name: commit and push
+  command: "{{item}}"
+  args: 
+    chdir: "{{workspace}}/"
+  loop: 
+    - git commit -m "add new host server for ec2"
+    - git push origin main
+  when: '"modified" in status.stdout'
+
+- set_fact: access_ip="{{ item.private_ip_address }}"
+  loop: "{{ EC2.instances }}"
+
+- name: Create a target group with a default health check
+  elb_target_group:
+    name: "{{ project }}-tg"
+    protocol: http
+    port: 80
+    vpc_id: "{{ vpc_id }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    aws_access_key: "{{ aws_access_key }}"
+    region: ap-southeast-1
+    state: present
+  when: load_balancer | bool
+
+- name: setup load balancer
+  elb_application_lb:
+    name: "{{ project }}-alb"
+    subnets:
+      - "{{ subnet_id }}"
+      - "subnet-0228da4f92652b3f9"
+    security_groups:
+      - "{{ project }}-app-sg"
+    region: ap-southeast-1
+    aws_secret_key: "{{ aws_secret_key }}"
+    aws_access_key: "{{ aws_access_key }}"
+    listeners:
+      - Protocol: HTTP
+        Port: 80
+        DefaultActions:
+          - Type: forward
+            TargetGroupName: "{{ project }}-tg"
+    state: present
+  when: load_balancer | bool
+
+- name: Create a hostfile file with permissions
+  file:
+    path: "{{workspace}}/ansible/common-server-hosts"
+    state: touch
+    mode: u=rwx,g=rx,o=rx
+  when: common_server | bool
+
+- name: Write in common-server
+  copy:
+    content: "common-server ansible_ssh_host={{ access_ip }} ansible_ssh_user=ec2-user ansible_ssh_private_key_file=./{{ project }}.pem "
+    dest: "{{workspace}}/ansible/common-server-hosts"
+  ignore_errors: yes
+  when: common_server | bool

@@ -1,0 +1,19 @@
+---
+- name: Install sudo package | package-09
+  ansible.builtin.package:
+    name: "{{ sudo_package }}"
+    state: present
+- name: Create Sudo Logs File | ignore if existing
+  file:
+    path: "/var/log/sudo.log"
+    state: touch
+  ignore_errors: true
+
+- name: Ensure sudo commands use pty and Ensure sudo log file exists
+  ansible.builtin.blockinfile:
+    path: /etc/sudoers
+    block: |
+      Defaults use_pty
+      Defaults logfile='/var/log/sudo.log'
+  ignore_errors: true
+

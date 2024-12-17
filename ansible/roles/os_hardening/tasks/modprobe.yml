@@ -1,0 +1,58 @@
+---
+- name: Install modprobe to disable filesystems | os-10
+  ansible.builtin.package:
+    name: "{{ modprobe_package }}"
+    state: present
+
+- name: Check if efi is installed
+  ansible.builtin.stat:
+    path: /sys/firmware/efi
+  register: efi_installed
+
+- name: Remove vfat from fs-list if efi is used
+  ansible.builtin.set_fact:
+    os_unused_filesystems: "{{ os_unused_filesystems | difference('vfat') }}"
+  when:
+    - efi_installed.stat.isdir is defined
+    - efi_installed.stat.isdir
+
+- name: Remove used filesystems from fs-list
+  ansible.builtin.set_fact:
+    os_unused_filesystems: "{{ os_unused_filesystems | difference(ansible_mounts | map(attribute='fstype') | list) }}"
+
+- name: Disable unused filesystems | os-10
+  ansible.builtin.template:
+    src: etc/modprobe.d/modprobe.j2
+    dest: /etc/modprobe.d/dev-sec.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure mounting of hfs filesystems is disabled | Create a file
+  file:
+    path: "/etc/modprobe.d/hfs.conf"
+    state: touch
+
+- name: Ensure mounting of hfs filesystems is disabled
+  ansible.builtin.blockinfile:
+    path: /etc/modprobe.d/hfs.conf
+    block: |
+      install hfs /bin/true
+- name: run command to disable
+  command: rmmod hfs
+  ignore_errors: true
+
+- name: Ensure mounting of hfsplus filesystems is disabled | Create File
+  file:
+    path: "/etc/modprobe.d/hfsplus.conf"
+    state: touch
+  ignore_errors: true
+- name: Ensure mounting of hfsplus filesystems is disabled
+  ansible.builtin.blockinfile:
+    path: /etc/modprobe.d/hfsplus.conf
+    block: |
+      install hfsplus /bin/true
+  ignore_errors: true
+- name:  disable_hfsplus
+  command: rmmod hfsplus
+  ignore_errors: true

@@ -1,0 +1,23 @@
+---
+# tasks file for ansible/roles/user-operation
+- name: Import tasks to add new user
+  ansible.builtin.import_tasks: new-user.yml
+  when: 
+    - action == 'new'
+  
+- name: Import tasks to update user
+  ansible.builtin.import_tasks: update-user.yml
+  when: 
+    - action == 'update'
+- name: Import tasks to disable user
+  ansible.builtin.import_tasks: disable-user.yml
+  when: 
+    - action == 'disable'
+- name: Import tasks to enable user
+  ansible.builtin.import_tasks: enable-user.yml
+  when: 
+    - action == 'enable'
+- name: Import tasks to delete user
+  ansible.builtin.import_tasks: delete-user.yml
+  when: 
+    - action == 'delete'

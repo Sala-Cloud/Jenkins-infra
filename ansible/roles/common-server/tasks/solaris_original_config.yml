@@ -1,0 +1,131 @@
+---
+# - name: beadm backup
+#   ignore_errors: true
+- name: Check that the file networks.orig exists
+  stat:
+    path: /etc/networks.orig
+  register: stat_result
+- name: backup default config file networks
+  command: cp -R /etc/networks /etc/networks.orig
+  when: not stat_result.stat.exists
+  
+- name: Check that the file security.orig exists
+  stat:
+    path: /etc/security.orig
+  register: stat_result
+- name: backup default config file security
+  command: cp -R /etc/security /etc/security.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file cores.orig exists
+  stat:
+    path: /var/share/cores.orig
+  register: stat_result
+- name: backup default config file cores
+  command: cp -R /var/share/cores /var/share/cores.orig
+  when: not stat_result.stat.exists
+
+
+- name: Check that the file default.orig exists
+  stat:
+    path: /etc/default.orig
+  register: stat_result
+- name: backup default config file default
+  command: cp -R /etc/default/ /etc/default.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file sshd_config.orig exists
+  stat:
+    path: /etc/ssh/sshd_config.orig
+  register: stat_result
+- name: backup default config file sshd_config
+  command: cp -R /etc/ssh/sshd_config /etc/ssh/sshd_config.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file proftpd.conf.orig exists
+  stat:
+    path: /etc/proftpd.conf.orig
+  register: stat_result
+- name: backup default config file proftpd.conf
+  command: cp -R /etc/proftpd.conf /etc/proftpd.conf.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file inet.orig exists
+  stat:
+    path: /etc/inet.orig
+  register: stat_result
+- name: backup default config file inet
+  command: cp -R /etc/inet /etc/inet.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file audit_event.orig exists
+  stat:
+    path: /etc/security/audit_event.orig
+  register: stat_result
+- name: backup default config file audit_event
+  command: cp -R /etc/security/audit_event /etc/security/audit_event.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file crontabs.orig exists
+  stat:
+    path: /var/spool/cron/crontabs.orig
+  register: stat_result
+- name: backup default config file crontabs.orig
+  command: cp -R /var/spool/cron/crontabs /var/spool/cron/crontabs.orig
+  when: not stat_result.stat.exists
+  
+- name: Check that the file keyserv.orig exists
+  stat:
+    path: /etc/default/keyserv.orig
+  register: stat_result
+- name: backup default config file keyserv
+  command: cp -R /etc/default/keyserv /etc/default/keyserv.orig
+  when: not stat_result.stat.exists
+  ignore_errors: true
+- name: Check that the file policy.conf.orig exists
+  stat:
+    path: /etc/security/policy.conf.orig
+  register: stat_result
+- name: backup default config file policy.conf
+  command: cp /etc/security/policy.conf /etc/security/policy.conf.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file rsh.orig exists
+  stat:
+    path: /etc/pam.d/rsh.orig
+  register: stat_result
+- name: backup default config file rsh
+  command: cp /etc/pam.d/rsh /etc/pam.d/rsh.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file rlogin.orig exists
+  stat:
+    path: /etc/pam.d/rlogin.orig
+  register: stat_result
+- name: backup default config file rlogin
+  command: cp /etc/pam.d/rlogin /etc/pam.d/rlogin.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file passwd.orig exists
+  stat:
+    path: /etc/default/passwd.orig
+  register: stat_result
+- name: backup default config file passwd
+  command: cp /etc/default/passwd /etc/default/passwd.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file login.orig exists
+  stat:
+    path: /etc/default/login.orig
+  register: stat_result
+- name: backup default config file login
+  command: cp /etc/default/login /etc/default/login.orig
+  when: not stat_result.stat.exists
+
+- name: Check that the file pam.conf.orig exists
+  stat:
+    path: /etc/pam.conf.orig
+  register: stat_result
+- name: backup default config file pam.conf
+  command: cp /etc/pam.conf /etc/pam.conf.orig
+  when: not stat_result.stat.exists

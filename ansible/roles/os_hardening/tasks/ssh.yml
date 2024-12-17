@@ -1,0 +1,23 @@
+---
+- name: Ensure permissions on /etc/ssh/sshd_config are configured
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 'og-rwx'
+- name: Write config file
+  template:
+    src: "etc/ssh/{{ ansible_os_family | lower }}/{{ item }}"
+    dest: "/etc/ssh/{{ item }}"
+    backup: yes
+  with_items:
+    - sshd_config
+  notify:
+    - Restart sshd
+  ignore_errors: true
+- name: Ensure service is running and enabled
+  service:
+    name: sshd
+    state: started
+    enabled: yes
+  ignore_errors: true

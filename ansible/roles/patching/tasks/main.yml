@@ -1,0 +1,6 @@
+---
+- name: Include patching to task
+  ansible.builtin.include_tasks: patch.yml
+  when: os_patching_enable | bool
+  tags:
+    - always

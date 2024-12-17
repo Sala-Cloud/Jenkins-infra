@@ -1,0 +1,13 @@
+- name: Check if users exist
+  ansible.builtin.user:
+    name: "{{ user }}"
+  check_mode: true
+  register: users_result
+- debug: 
+    msg: "{{ users_result }}"
+- name: Delete user {{ user }}
+  ansible.builtin.user:
+    name: "{{ user }}"
+    state: absent
+    remove: true
+  when: false in users_result.values()

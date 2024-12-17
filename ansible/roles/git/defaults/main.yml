@@ -1,0 +1,4 @@
+---
+# defaults file for ansible/roles/git
+GITLAB_USERNAME: sothy.lorn
+GITLAB_ACCESS_TOKEN: zf442-QU9vWKUm4_mjBo

@@ -5,31 +5,39 @@
   loop: 
     - git checkout main
     - git pull
+
 - name: add host user operation (ubuntu)
   ansible.builtin.lineinfile:
     path: "{{workspace}}/ansible/inventory/{{ENV}}/user-operation-hosts"
-    insertafter: EOF
-    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{ server_ip }} ansible_ssh_user=amkdevops"
+    regexp: "^{{server_name}}-{{ENV}} "  # Look for existing host entry
+    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=amkdevops"
     state: present
+    create: yes
+
 - name: add host for hardening server (ubuntu)
   ansible.builtin.lineinfile:
     path: "{{workspace}}/ansible/inventory/{{ENV}}/{{OS}}/hardening-server-hosts"
-    regexp: '^[ubuntu] '
+    regexp: "^{{server_name}}-{{ENV}} "  # Look for existing host entry
     insertafter: '^\[ubuntu\]'
-    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{ server_ip }} ansible_ssh_user=amkdevops"
+    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=amkdevops"
     state: present
+    create: yes
+
 - name: add host for patching server (ubuntu)
   ansible.builtin.lineinfile:
     path: "{{workspace}}/ansible/inventory/{{ENV}}/{{OS}}/patching-server-hosts"
-    regexp: '^[ubuntu] '
+    regexp: "^{{server_name}}-{{ENV}} "  # Look for existing host entry
     insertafter: '^\[ubuntu\]'
-    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{ server_ip }} ansible_ssh_user=amkdevops"
+    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=amkdevops"
     state: present
+    create: yes
+
 - name: git status
   command: git status
   args:
     chdir: "{{workspace}}/"
   register: status
+
 - name: add new host to gitlab
   command: git add {{item}}
   args: 
@@ -39,12 +47,12 @@
     - "{{workspace}}/ansible/inventory/{{ENV}}/{{OS}}/hardening-server-hosts"
     - "{{workspace}}/ansible/inventory/{{ENV}}/{{OS}}/patching-server-hosts"
   when: '"modified" in status.stdout'
+
 - name: commit and push
   command: "{{item}}"
   args: 
     chdir: "{{workspace}}/"
   loop: 
-    - git commit -m "add new host server"
+    - git commit -m "add or update host server"
     - git push origin main
   when: '"modified" in status.stdout'
-

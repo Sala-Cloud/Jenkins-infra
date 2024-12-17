@@ -82,34 +82,34 @@
 
 - name: Check group exists
   ansible.builtin.group:
-    name: "amkdevops"
+    name: "ansibleuser"
     state: present
   check_mode: true
   register: group_result
-- name: Create group amkdevops
+- name: Create group ansibleuser
   group:
-    name: amkdevops
+    name: ansibleuser
     state: present
   when: true in group_result.values()
-- name: Create user amkdevops
+- name: Create user ansibleuser
   user:
-    name: amkdevops
-    groups: amkdevops
+    name: ansibleuser
+    groups: ansibleuser
     append: yes
     shell: /bin/bash
     state: present
   register: user_data
 
-- name: Add user amkdevops to sudoer
+- name: Add user ansibleuser to sudoer
   copy:
-    content: "amkdevops ALL=(ALL) NOPASSWD:ALL"
-    dest: /etc/sudoers.d/amkdevops
+    content: "ansibleuser ALL=(ALL) NOPASSWD:ALL"
+    dest: /etc/sudoers.d/ansibleuser
   become: true
 
-- name: Set authorized keys on amkdevops
+- name: Set authorized keys on ansibleuser
   authorized_key:
-    user: amkdevops
-    key: "{{ lookup('file', 'authorized_keys/amkdevops.keys') }}"
+    user: ansibleuser
+    key: "{{ lookup('file', 'authorized_keys/ansibleuser.keys') }}"
     exclusive: yes
     manage_dir: yes
     state: present
@@ -118,8 +118,8 @@
   copy:
     dest: "{{ user_data.home }}/.ssh/config"
     backup: no
-    owner: amkdevops
-    group: amkdevops
+    owner: ansibleuser
+    group: ansibleuser
     mode: 0600
     content: |
       StrictHostKeyChecking no

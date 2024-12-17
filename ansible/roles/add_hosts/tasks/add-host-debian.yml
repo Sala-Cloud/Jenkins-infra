@@ -10,7 +10,7 @@
   ansible.builtin.lineinfile:
     path: "{{workspace}}/ansible/inventory/{{ENV}}/user-operation-hosts"
     regexp: "^{{server_name}}-{{ENV}} "  # Look for existing host entry
-    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=amkdevops"
+    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=ansibleuser"
     state: present
     create: yes
 
@@ -19,7 +19,7 @@
     path: "{{workspace}}/ansible/inventory/{{ENV}}/{{OS}}/hardening-server-hosts"
     regexp: "^{{server_name}}-{{ENV}} "  # Look for existing host entry
     insertafter: '^\[ubuntu\]'
-    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=amkdevops"
+    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=ansibleuser"
     state: present
     create: yes
 
@@ -28,7 +28,7 @@
     path: "{{workspace}}/ansible/inventory/{{ENV}}/{{OS}}/patching-server-hosts"
     regexp: "^{{server_name}}-{{ENV}} "  # Look for existing host entry
     insertafter: '^\[ubuntu\]'
-    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=amkdevops"
+    line: "{{server_name}}-{{ENV}} ansible_ssh_host={{server_ip}} ansible_ssh_user=ansibleuser"
     state: present
     create: yes
 

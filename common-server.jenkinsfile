@@ -22,38 +22,44 @@ pipeline {
         stage ('Custom Host') {
             steps {
                 script {
-                    sh """#!/bin/sh -l
-                        ansible-playbook ansible/custom-host.yml \
-                                         -i ansible/inventory/${ENV}/hosts \
-                                         -e ENV=${ENV} \
-                                         -e password=${Password} \
-                                         -e server_ip=${IP_Address} \
-                                         -e user=${UserName} \
-                                         -e workspace=${WORKSPACE}             
-                    """
+                    withCredentials([string(credentialsId: 'Password_Cred', variable: 'SECURE_PASSWORD')]) {
+                        sh """
+                            ansible-playbook ansible/custom-host.yml \
+                                             -i ansible/inventory/${params.ENV}/hosts \
+                                             -e ENV=${params.ENV} \
+                                             -e password=${SECURE_PASSWORD} \
+                                             -e server_ip=${params.IP_Address} \
+                                             -e user=${params.UserName} \
+                                             -e workspace=${WORKSPACE}
+                        """
+                    }
                 }
             }
         }
         stage ('Configure Common Server') {
             steps {
                 script {
-                    sh """#!/bin/sh -l
-                        ansible-playbook ansible/common-server.yml \
-                                        -i ansible/inventory/${ENV}/custom-hosts \
-                                        -e "ansible_sudo_pass=${PASSWORD}" \
-                                        -e docker=${Docker} \
-                                        -e git=${Git} \
-                                        -e nginx=${Nginx} \
-                                        -e apache=${Apache} \
-                                        -e jboss=${Jboss} \
-                                        -e java=${Java} | tee -a result-logs-${BUILD_NUMBER}.txt
-                        echo "OS: ${OS}" > common-server-result-${BUILD_NUMBER}.txt
-                        echo "Environments: ${ENV}" >> common-server-result-${BUILD_NUMBER}.txt
-                        echo "Server_Name: ${Server_Name}" >> common-server-result-${BUILD_NUMBER}.txt
-                        echo "IP_Address: ${IP_Address}" >> common-server-result-${BUILD_NUMBER}.txt
-                        grep -A99 "PLAY RECAP" result-logs-${BUILD_NUMBER}.txt >> common-server-result-${BUILD_NUMBER}.txt
-                    """
-                    // Send result logs to Telegram
+                    withCredentials([string(credentialsId: 'Password_Cred', variable: 'SECURE_PASSWORD')]) {
+                        sh """
+                            ansible-playbook ansible/common-server.yml \
+                                -i ansible/inventory/${params.ENV}/custom-hosts \
+                                -e "ansible_sudo_pass=${SECURE_PASSWORD}" \
+                                -e docker=${params.Docker} \
+                                -e git=${params.Git} \
+                                -e nginx=${params.Nginx} \
+                                -e apache=${params.Apache} \
+                                -e jboss=${params.Jboss} \
+                                -e java=${params.Java} | tee -a result-logs-${BUILD_NUMBER}.txt
+                        """
+                        sh """
+                            echo "OS: ${params.OS}" > common-server-result-${BUILD_NUMBER}.txt
+                            echo "Environments: ${params.ENV}" >> common-server-result-${BUILD_NUMBER}.txt
+                            echo "Server_Name: ${params.Server_Name}" >> common-server-result-${BUILD_NUMBER}.txt
+                            echo "IP_Address: ${params.IP_Address}" >> common-server-result-${BUILD_NUMBER}.txt
+                            grep -A99 "PLAY RECAP" result-logs-${BUILD_NUMBER}.txt >> common-server-result-${BUILD_NUMBER}.txt
+                        """
+                    }
+                    // Send logs to Telegram
                     sh """
                         curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
                         -F chat_id=${TELEGRAM_GROUP_ID} \
@@ -72,17 +78,19 @@ pipeline {
         stage ('Add Host') {
             steps {
                 script {
-                    sh """#!/bin/sh -l
-                        ansible-playbook ansible/add-host.yml \
-                                         -i ansible/inventory/${ENV}/hosts \
-                                         -e ENV=${ENV} \
-                                         -e OS=${OS} \
-                                         -e server_name=${Server_Name} \
-                                         -e server_ip=${IP_Address} \
-                                         -e user=${UserName} \
-                                         -e password=${Password} \
-                                         -e workspace=${WORKSPACE}
-                    """
+                    withCredentials([string(credentialsId: 'Password_Cred', variable: 'SECURE_PASSWORD')]) {
+                        sh """
+                            ansible-playbook ansible/add-host.yml \
+                                             -i ansible/inventory/${params.ENV}/hosts \
+                                             -e ENV=${params.ENV} \
+                                             -e OS=${params.OS} \
+                                             -e server_name=${params.Server_Name} \
+                                             -e server_ip=${params.IP_Address} \
+                                             -e user=${params.UserName} \
+                                             -e password=${SECURE_PASSWORD} \
+                                             -e workspace=${WORKSPACE}
+                        """
+                    }
                 }
             }
         }

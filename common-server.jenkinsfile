@@ -4,7 +4,7 @@ pipeline {
         TELEGRAM_BOT_TOKEN = credentials('Telegram_Bot_Token') // Add in Jenkins credentials
         TELEGRAM_GROUP_ID  = credentials('Telegram_Group_ID')  // Add in Jenkins credentials
     }
-    parameters{
+    parameters {
         choice(name: 'OS',  choices: ['','ubuntu','redhat','solaris'], description: 'Pls choose OS')
         string(name: 'Server_Name', defaultValue: '', description: '')
         string(name: 'IP_Address', defaultValue: '', description: '')
@@ -22,9 +22,6 @@ pipeline {
         stage ('Custom Host') {
             steps {
                 script {
-                    // echo "${env.Password} > ${env.WORKSPACE}/ansible/password.txt"
-                    // echo "password: ${env.Password} > ${env.WORKSPACE}/ansible/user_password.yml"
-                    // sh "ansible-vault encrypt ansible/user_password.yml --vault-password-file ansible/password.txt"
                     sh """#!/bin/sh -l
                         ansible-playbook ansible/custom-host.yml \
                                          -i ansible/inventory/${ENV}/hosts \
@@ -50,19 +47,27 @@ pipeline {
                                         -e apache=${Apache} \
                                         -e jboss=${Jboss} \
                                         -e java=${Java} | tee -a result-logs-${BUILD_NUMBER}.txt
-                         echo "OS: ${OS}" > common-server-result-${BUILD_NUMBER}.txt
-                         echo "Enviroments: ${ENV}" >> common-server-result-${BUILD_NUMBER}.txt
-                         echo "Server_Name: ${Server_Name}" >> common-server-result-${BUILD_NUMBER}.txt
-                         echo "IP_Address: ${IP_Address}" >> common-server-result-${BUILD_NUMBER}.txt
-                         grep -A99 "PLAY RECAP" result-logs-${BUILD_NUMBER}.txt >> common-server-result-${BUILD_NUMBER}.txt
+                        echo "OS: ${OS}" > common-server-result-${BUILD_NUMBER}.txt
+                        echo "Environments: ${ENV}" >> common-server-result-${BUILD_NUMBER}.txt
+                        echo "Server_Name: ${Server_Name}" >> common-server-result-${BUILD_NUMBER}.txt
+                        echo "IP_Address: ${IP_Address}" >> common-server-result-${BUILD_NUMBER}.txt
+                        grep -A99 "PLAY RECAP" result-logs-${BUILD_NUMBER}.txt >> common-server-result-${BUILD_NUMBER}.txt
+                    """
+                    // Send result logs to Telegram
+                    sh """
+                        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+                        -F chat_id=${TELEGRAM_GROUP_ID} \
+                        -F document=@${WORKSPACE}/result-logs-${BUILD_NUMBER}.txt \
+                        -F caption="Result Logs Report attached for Build #${BUILD_NUMBER}"
                     """
                     sh """
-                        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-                        -d chat_id=${TELEGRAM_GROUP_ID} \
-                        -d text="Pipeline Finished: Configure Common Server\\nStatus: ${currentBuild.currentResult}\\nBuild Number: ${BUILD_NUMBER}"
+                        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+                        -F chat_id=${TELEGRAM_GROUP_ID} \
+                        -F document=@${WORKSPACE}/common-server-result-${BUILD_NUMBER}.txt \
+                        -F caption="Result Report attached for Build #${BUILD_NUMBER}"
                     """
-                    }
                 }
+            }
         }
         stage ('Add Host') {
             steps {
@@ -77,30 +82,21 @@ pipeline {
                                          -e user=${UserName} \
                                          -e password=${Password} \
                                          -e workspace=${WORKSPACE}
-                                        
                     """
                 }
             }
         }
-        // stage('Clean Up') {
-        //     steps {
-        //         // Clean before build
-        //         cleanWs()
-        //     }
-        // }
     }
-    //  post {
-    //      always{
-    //         script{
-    //             sh """
-    //                 curl --location 'https://webexapis.com/v1/messages' \
-    //                         --header 'Authorization: Bearer ${Webex_Token}' \
-    //                         --form 'roomId=${AMK_Room_ID}' \
-    //                         --form 'html= <strong>Stage</strong>:  Configure Common Server <br>
-    //                                 <strong>Status</strong>: ${currentBuild.currentResult} <br>
-    //                                 <strong>Builder</strong>: ${BUILD_USER} '
-    //             """       
-    //         }
-    //      }
-    //  }
+    post {
+        always {
+            script {
+                // Send notification about pipeline status to Telegram
+                sh """
+                    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                    -d chat_id=${TELEGRAM_GROUP_ID} \
+                    -d text="Pipeline Finished: Configure Common Server\\nStatus: ${currentBuild.currentResult}\\nBuild Number: ${BUILD_NUMBER}"
+                """
+            }
+        }
+    }
 }

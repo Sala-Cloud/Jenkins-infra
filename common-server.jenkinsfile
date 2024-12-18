@@ -3,8 +3,9 @@ pipeline {
     environment {
         TELEGRAM_BOT_TOKEN = credentials('Telegram_Bot_Token') // Add in Jenkins credentials
         TELEGRAM_GROUP_ID  = credentials('Telegram_Group_ID')  // Add in Jenkins credentials
+        PASSWORD = credentials('Password') // Add in Jenkins credentials
     }
-    parameters{
+    parameters {
         choice(name: 'OS',  choices: ['','ubuntu','redhat','solaris'], description: 'Pls choose OS')
         string(name: 'Server_Name', defaultValue: '', description: '')
         string(name: 'IP_Address', defaultValue: '', description: '')
@@ -22,14 +23,11 @@ pipeline {
         stage ('Custom Host') {
             steps {
                 script {
-                    // echo "${env.Password} > ${env.WORKSPACE}/ansible/password.txt"
-                    // echo "password: ${env.Password} > ${env.WORKSPACE}/ansible/user_password.yml"
-                    // sh "ansible-vault encrypt ansible/user_password.yml --vault-password-file ansible/password.txt"
                     sh """#!/bin/sh -l
                         ansible-playbook ansible/custom-host.yml \
                                          -i ansible/inventory/${ENV}/hosts \
                                          -e ENV=${ENV} \
-                                         -e password=${Password} \
+                                         -e password=${PASSWORD} \
                                          -e server_ip=${IP_Address} \
                                          -e user=${UserName} \
                                          -e workspace=${WORKSPACE}             
@@ -43,7 +41,7 @@ pipeline {
                     sh """#!/bin/sh -l
                         ansible-playbook ansible/common-server.yml \
                                         -i ansible/inventory/${ENV}/custom-hosts \
-                                        -e "ansible_sudo_pass=${Password}" \
+                                        -e "ansible_sudo_pass=${PASSWORD}" \
                                         -e docker=${Docker} \
                                         -e git=${Git} \
                                         -e nginx=${Nginx} \
@@ -55,7 +53,6 @@ pipeline {
                          echo "Server_Name: ${Server_Name}" >> common-server-result-${BUILD_NUMBER}.txt
                          echo "IP_Address: ${IP_Address}" >> common-server-result-${BUILD_NUMBER}.txt
                          grep -A99 "PLAY RECAP" result-logs-${BUILD_NUMBER}.txt >> common-server-result-${BUILD_NUMBER}.txt
-                    """
                     """
                     // Send result logs to Telegram
                     sh """
@@ -70,13 +67,6 @@ pipeline {
                         -F document=@${WORKSPACE}/common-server-result-${BUILD_NUMBER}.txt \
                         -F caption="Result Report attached for Build #${BUILD_NUMBER}"
                     """
-
-                    // sh """
-                    //     curl -F 'roomId=${AMK_Room_ID}' -F 'files=@${WORKSPACE}/result-logs-${BUILD_NUMBER}.txt' -F 'text=Result Logs Report attached' -H 'Authorization: Bearer OTI0ZGQzYjItZWZmOC00MDFlLWI0NDItZDJjMjY1YzFiNWNhMWJiY2YwNDktOTA3_PF84_e9d367a2-7717-4865-b0b8-3f5b644c2265' --location 'https://webexapis.com/v1/messages'
-                    // """
-                    // sh """
-                    //     curl -F 'roomId=${AMK_Room_ID}' -F 'files=@${WORKSPACE}/common-server-result-${BUILD_NUMBER}.txt' -F 'text=Result Report attached' -H 'Authorization: Bearer OTI0ZGQzYjItZWZmOC00MDFlLWI0NDItZDJjMjY1YzFiNWNhMWJiY2YwNDktOTA3_PF84_e9d367a2-7717-4865-b0b8-3f5b644c2265' --location 'https://webexapis.com/v1/messages'
-                    // """
                 }
             }
         }
@@ -91,9 +81,8 @@ pipeline {
                                          -e server_name=${Server_Name} \
                                          -e server_ip=${IP_Address} \
                                          -e user=${UserName} \
-                                         -e password=${Password} \
+                                         -e password=${PASSWORD} \
                                          -e workspace=${WORKSPACE}
-                                        
                     """
                 }
             }

@@ -1,5 +1,5 @@
 pipeline {
-    agent any //{ label 'main' }
+    agent { label 'master' }
     environment {
         TELEGRAM_BOT_TOKEN = credentials('Telegram_Bot_Token') // Add in Jenkins credentials
         TELEGRAM_GROUP_ID  = credentials('Telegram_Group_ID')  // Add in Jenkins credentials

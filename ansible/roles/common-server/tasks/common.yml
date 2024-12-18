@@ -65,12 +65,12 @@
 #     - ansible_facts.os_family == 'RedHat'
 #     - sv_commmon_enable | bool
 
-- name: Import tasks to configure dns on debain & RedHat
-  ansible.builtin.import_tasks: dns.yml
-  tags: dns
-  when: 
-    - ansible_facts.os_family != 'Solaris'
-    - sv_commmon_enable | bool
+# - name: Import tasks to configure dns on debain & RedHat
+#   ansible.builtin.import_tasks: dns.yml
+#   tags: dns
+#   when: 
+#     - ansible_facts.os_family != 'Solaris'
+#     - sv_commmon_enable | bool
 
 # - name: Import tasks to add dns on solaris
 #   ansible.builtin.import_tasks: dns_solaris.yml

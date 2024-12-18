@@ -40,7 +40,7 @@ pipeline {
                     sh """#!/bin/sh -l
                         ansible-playbook ansible/common-server.yml \
                                         -i ansible/inventory/${ENV}/custom-hosts \
-                                        -e "ansible_sudo_pass=${SECURE_PASSWORD}" \
+                                        -e "ansible_sudo_pass=${PASSWORD}" \
                                         -e docker=${Docker} \
                                         -e git=${Git} \
                                         -e nginx=${Nginx} \
